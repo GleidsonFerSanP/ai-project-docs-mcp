@@ -1,0 +1,101 @@
+{
+    "name": "project-docs-mcp",
+    "displayName": "Project Docs MCP",
+    "description": "Sistema Universal de Documentação Multi-Projeto com Auto-Learning e Prevenção de Duplicação",
+    "version": "2.5.0",
+    "publisher": "seu-publisher-id",
+    "icon": "icon.png",
+    "engines": {
+        "vscode": "^1.85.0"
+    },
+    "categories": [
+        "AI",
+        "Programming Languages",
+        "Snippets",
+        "Other"
+    ],
+    "keywords": [
+        "mcp",
+        "model context protocol",
+        "documentation",
+        "ai assistant",
+        "copilot",
+        "knowledge base",
+        "architecture",
+        "contracts"
+    ],
+    "activationEvents": [
+        "onStartupFinished"
+    ],
+    "main": "./dist/extension.js",
+    "contributes": {
+        "commands": [
+            {
+                "command": "project-docs-mcp.configure",
+                "title": "Configure Project Docs MCP",
+                "category": "Project Docs"
+            },
+            {
+                "command": "project-docs-mcp.restart",
+                "title": "Restart MCP Server",
+                "category": "Project Docs"
+            },
+            {
+                "command": "project-docs-mcp.viewDocs",
+                "title": "Open Documentation",
+                "category": "Project Docs"
+            }
+        ],
+        "configuration": {
+            "title": "Project Docs MCP",
+            "properties": {
+                "projectDocsMcp.autoStart": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Automatically start MCP server on VS Code startup"
+                },
+                "projectDocsMcp.logLevel": {
+                    "type": "string",
+                    "enum": [
+                        "error",
+                        "warn",
+                        "info",
+                        "debug"
+                    ],
+                    "default": "info",
+                    "description": "Log level for MCP server"
+                },
+                "projectDocsMcp.defaultProject": {
+                    "type": "string",
+                    "default": "jarvis",
+                    "description": "Default project to use when none is detected"
+                }
+            }
+        }
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run compile",
+        "compile": "tsc -p ./",
+        "watch": "tsc -watch -p ./",
+        "pretest": "npm run compile",
+        "package": "vsce package",
+        "publish": "vsce publish"
+    },
+    "devDependencies": {
+        "@types/node": "^20.0.0",
+        "@types/vscode": "^1.85.0",
+        "@vscode/vsce": "^2.22.0",
+        "typescript": "^5.3.0"
+    },
+    "dependencies": {
+        "@modelcontextprotocol/sdk": "^1.0.0"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/seu-usuario/jarvis-docs-mcp.git"
+    },
+    "bugs": {
+        "url": "https://github.com/seu-usuario/jarvis-docs-mcp/issues"
+    },
+    "license": "MIT"
+}

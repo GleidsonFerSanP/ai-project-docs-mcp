@@ -1,0 +1,22 @@
+.vscode
+.git
+node_modules
+*.vsix
+src
+tsconfig.json
+.gitignore
+
+# Não incluir projetos específicos do desenvolvedor
+../knowledge/jarvis/**
+../knowledge/automacao-n8n/**
+../knowledge/educate/**
+../knowledge/jarvis-docs-mcp/**
+../docs/jarvis/**
+../docs/automacao-n8n/**
+../docs/educate/**
+
+# Incluir apenas estrutura base e exemplos
+!../knowledge/.gitkeep
+!../docs/_shared/**
+!../docs/architecture-decisions/
+!../mcp-config.example.json

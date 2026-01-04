@@ -1,0 +1,38 @@
+{
+    "version": "1.2.0",
+    "defaultProject": "my-project",
+    "workspaceRoots": [
+        "${HOME}/workspace",
+        "${HOME}/projects",
+        "${HOME}/dev"
+    ],
+    "projects": {
+        "my-project": {
+            "name": "My First Project",
+            "description": "Example project configuration",
+            "paths": [
+                "my-project",
+                "project-backend",
+                "project-frontend"
+            ],
+            "stack": {
+                "backend": {
+                    "framework": "NestJS",
+                    "language": "TypeScript",
+                    "architecture": "Clean Architecture"
+                },
+                "frontend": {
+                    "framework": "React",
+                    "language": "TypeScript",
+                    "architecture": "Component-based"
+                }
+            },
+            "principles": [
+                "SOLID",
+                "Clean Architecture",
+                "DDD",
+                "Test Driven Development"
+            ]
+        }
+    }
+}
