@@ -1,430 +1,360 @@
-# JARVIS Documentation MCP Server
+# AI Project Docs MCP
 
-MCP Server que fornece documentação centralizada e contextual para múltiplos projetos com **sistema de auto-aprendizado** e **prevenção automática de duplicação**.
+> **Universal Multi-Project Documentation System with Auto-Learning and Duplicate Prevention**
 
-## 🌍 Portabilidade
+Model Context Protocol (MCP) server that acts as a **single source of truth** for multiple software projects, featuring intelligent documentation management, contract registry, pattern learning, and automatic duplicate detection.
 
-**✅ Funciona em qualquer máquina sem modificar código!**
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue)](https://www.typescriptlang.org/)
+[![MCP](https://img.shields.io/badge/MCP-1.0-green)](https://modelcontextprotocol.io/)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-* Usa variáveis de ambiente (`${HOME}`,  `${USER}`)
-* Paths relativos configuráveis
-* Knowledge base compartilhável via Git
-* Setup simples em nova máquina
+---
 
-📖 **[Guia Completo de Portabilidade](docs/_shared/PORTABILITY-SETUP.md)**
+## 🎯 What Problem Does This Solve?
 
-## 🚫 Prevenção de Duplicação
+**The Problem:**
+- AI agents forget critical interfaces and contracts between sessions
+- Duplicate documentation files are constantly created
+- Project-specific patterns aren't preserved
+- Architectural decisions are lost or repeated
+- Onboarding new AI agents requires repeating the same instructions
 
-**✅ Impossível criar documentação duplicada!**
+**The Solution:**
+This MCP server provides persistent memory for your projects, ensuring AI agents:
+- ✅ Never forget critical contracts and interfaces
+- ✅ Automatically detect and prevent duplicate documentation
+- ✅ Remember project-specific patterns and apply them consistently
+- ✅ Validate code against registered contracts
+- ✅ Access architectural decisions instantly
 
-* Verificação automática de similaridade
-* Bloqueio em tentativa de duplicação
-* Força atualização de docs existentes
-* Sistema garante única fonte da verdade
+---
 
-📖 **[Sistema de Gerenciamento de Documentação](docs/_shared/DOCUMENTATION-MANAGEMENT.md)**
+## ✨ Key Features
 
-## O que é?
+### 📚 Multi-Project Support
+Manage documentation for multiple projects independently with automatic context detection.
 
-Este MCP (Model Context Protocol) Server fornece acesso consistente à documentação de projetos para AI agents (GitHub Copilot, Claude, etc.), garantindo que:
+### 🧠 Auto-Learning System
+- **Contract Registry**: Register critical interfaces that must always be respected
+- **Pattern Learning**: Teach project-specific patterns once, apply forever
+- **Project Scanning**: Automatically extract interfaces and patterns from code
+- **Validation**: Validate implementations against registered contracts
 
-1. ✅ Backend e Frontend sigam os mesmos princípios (SOLID, Clean Architecture)
-2. ✅ Agents identifiquem automaticamente se estão no backend ou frontend
-3. ✅ Documentação seja criada apenas quando necessário
-4. ✅ Não haja ambiguidade entre os projetos
-5. 🧠 Agents aprendam e lembrem contratos/padrões do projeto
-6. 🔍 Validação automática de implementações contra contratos
-7. 📝 Memória persistente de decisões arquiteturais
-8. 🚫 **NOVO:** Prevenção automática de duplicação de documentação
-9. 🌍 **NOVO:** Totalmente portátil entre máquinas
+### 🔍 Intelligent Documentation Management
+- **Duplicate Detection**: Similarity algorithm prevents duplicate documentation (≥50% match)
+- **Automatic Updates**: Suggests updating existing docs instead of creating new ones
+- **Metadata Tracking**: Full version history, topics, keywords, and context
 
-## 🆕 Sistema de Auto-Aprendizado
+### 🌍 Cross-Machine Portability
+- Environment variable support (`${HOME}`, `${USER}`)
+- Works seamlessly across macOS, Linux, and Windows
+- Clean separation between framework and user data
 
-**Problema resolvido:** Agent para de esquecer contratos e interfaces importantes!
+### 📦 VS Code Extension
+One-click installation with automatic MCP configuration.
 
-### Como funciona:
+---
 
-1. **Contract Registry**: Registre interfaces críticas que devem ser respeitadas
-2. **Pattern Learning**: Ensine padrões específicos do seu projeto
-3. **Project Scanning**: Análise automática do código
-4. **Validation**: Verifique se implementações respeitam contratos
-5. **Architectural Decisions**: Memória de decisões importantes
+## 🚀 Quick Start
 
-**📖 [Guia Completo de Auto-Aprendizado](docs/AUTO-LEARNING.md)**
+### Option 1: VS Code Extension (Recommended)
 
-## 📥 Instalação
+1. Install from VS Code Marketplace (coming soon)
+2. Extension auto-configures MCP - done!
 
-### Opção 1: Extensão VS Code (Recomendado) ⭐
-
-**A forma mais fácil de usar!**
-
-1. Instale a extensão do [VS Code Marketplace](https://marketplace.visualstudio.com)
-2. Procure por "Project Docs MCP"
-3. Clique em "Install"
-4. **Pronto!** Configuração automática
-
-**Ou instale manualmente:**
-
-```bash
-./build-extension.sh
-code --install-extension extension/project-docs-mcp-2.4.0.vsix
-```
-
-📖 **[Guia de Publicação da Extensão](docs/_shared/EXTENSION-PUBLISHING.md)**
-
-### Opção 2: Configuração Manual
+### Option 2: Manual Setup
 
 ```bash
-# Clone e build
-git clone <repo> jarvis-docs-mcp
-cd jarvis-docs-mcp
+# Clone and build
+git clone https://github.com/GleidsonFerSanP/ai-project-docs-mcp.git
+cd ai-project-docs-mcp
 npm install
 npm run build
 
-# Configure no VS Code
-# Edite .vscode/mcp.json ou configuração global
-```
-
-📖 **[Guia de Portabilidade](docs/_shared/PORTABILITY-SETUP.md)**
-
-## 🎯 Quick Start
-
-### Com Extensão VS Code
-
-Simplesmente use no Copilot Chat:
-
-```
-@project-docs list_projects
-@project-docs register_feature { ... }
-@project-docs check_existing_documentation { ... }
-```
-
-### Comandos da Extensão
-
-* **Project Docs: Configure** - Reconfigura MCP
-* **Project Docs: Restart MCP Server** - Reinicia servidor
-* **Project Docs: Open Documentation** - Abre docs
-
-## Features
-
-### Resources (Documentos)
-
-* **project-overview**: Visão geral, arquitetura, princípios SOLID/Clean Architecture
-* **backend-guidelines**: Guidelines específicos para NestJS/backend
-* **frontend-guidelines**: Guidelines específicos para Angular/frontend
-* **documentation-rules**: Regras sobre quando documentar
-
-### Tools (Ferramentas)
-
-#### Contexto e Guidelines
-
-#### 1. `identify_context`
-
-Identifica automaticamente se você está no backend ou frontend.
-
-**Uso:**
-
-```json
-{
-  "file_path": "src/app/command/command.controller.ts",
-  "project_type": "backend"
-}
-```
-
-**Retorna:** Contexto identificado + guidelines relevantes
-
-#### 2. `get_guidelines`
-
-Busca guidelines específicos por contexto e tópico.
-
-**Uso:**
-
-```json
-{
-  "context": "backend",
-  "topic": "testing"
-}
-```
-
-#### 3. `should_document`
-
-Verifica se uma mudança precisa de documentação .md.
-
-**Uso:**
-
-```json
-{
-  "change_type": "feature",
-  "complexity": "complex",
-  "description": "New payment processing module"
-}
-```
-
-**Retorna:** Recomendação de documentação
-
-#### 🧠 Auto-Aprendizado
-
-#### 4. `register_contract`
-
-Registra um contrato/interface crítico que **DEVE** ser respeitado.
-
-```json
-{
-  "name": "ISolutionAdapter",
-  "context": "backend",
-  "description": "Contrato que todas as soluções devem implementar",
-  "interface_code": "export interface ISolutionAdapter<T, R> { execute(input: T): Promise<ApiResponse<R>>; }",
-  "rules": ["Deve ter método execute()", "Retornar ApiResponse<T>"],
-  "examples": ["class OpenAISolution implements ISolutionAdapter {...}"]
-}
-```
-
-#### 5. `get_contracts`
-
-Lista contratos registrados ou busca específicos.
-
-```json
-{
-  "context": "backend",
-  "search": "Solution"
-}
-```
-
-#### 6. `validate_contract`
-
-Valida se código respeita um contrato.
-
-```json
-{
-  "contract_name": "ISolutionAdapter",
-  "code": "class NewSolution implements ISolutionAdapter {...}"
-}
-```
-
-**Retorna:** Validação + violações (se houver)
-
-#### 7. `learn_pattern`
-
-Ensina um padrão ao MCP.
-
-```json
-{
-  "name": "Domain Error Handling",
-  "context": "backend",
-  "description": "Padrão de tratamento de erros",
-  "pattern": "try { ... } catch (e) { ... }",
-  "examples": ["src/use-cases/create-user.ts"]
-}
-```
-
-#### 8. `scan_project`
-
-Escaneia projeto e extrai interfaces/classes.
-
-```json
-{
-  "project_path": "/caminho/do/projeto/backend",
-  "context": "backend"
-}
-```
-
-#### 9. `add_decision`
-
-Registra decisão arquitetural (ADR).
-
-```json
-{
-  "title": "Usar PostgreSQL ao invés de MongoDB",
-  "context": "Necessidade de transações ACID",
-  "decision": "PostgreSQL para dados transacionais",
-  "positive_consequences": ["Integridade de dados", "Transações"],
-  "negative_consequences": ["Menos flexibilidade de schema"]
-}
-```
-
-## Instalação
-
-```bash
-# Instalar dependências
-npm install
-
-# Build
-npm run build
-
-# Testar localmente
-npm start
-```
-
-## Configuração no GitHub Copilot (VS Code)
-
-Adicione ao seu `settings.json` :
-
-```json
+# Configure VS Code
+# Add to your VS Code settings.json:
 {
   "github.copilot.advanced": {
     "mcp": {
       "servers": {
-        "jarvis-docs": {
+        "project-docs": {
           "command": "node",
-          "args": ["/caminho/absoluto/para/jarvis-docs-mcp/dist/index.js"]
+          "args": ["${workspaceFolder}/ai-project-docs-mcp/dist/index.js"]
         }
       }
     }
   }
 }
+
+# Restart VS Code
 ```
 
-## Configuração no Claude Desktop
+### Configuration
 
-Adicione ao `claude_desktop_config.json` :
+Create `mcp-config.json`:
 
 ```json
 {
-  "mcpServers": {
-    "jarvis-docs": {
-      "command": "node",
-      "args": ["/caminho/absoluto/para/jarvis-docs-mcp/dist/index.js"]
+  "currentProject": "my-project",
+  "workspaceRoots": ["${HOME}/projects"],
+  "projects": {
+    "my-project": {
+      "name": "My Project",
+      "description": "Project description",
+      "paths": ["${HOME}/projects/my-project"],
+      "stack": {
+        "backend": "NestJS",
+        "frontend": "React"
+      },
+      "principles": ["DDD", "Clean Architecture"]
     }
   }
 }
 ```
 
-## Como Usar com AI Agents
+---
 
-### 🚀 Quick Start (Primeira Vez)
+## 📖 Usage
 
-**1. Escanei seu projeto:**
+### Create a Project
 
-```
-"Escanei o projeto backend em /caminho/do/projeto/backend"
-```
-
-**2. Registre contratos críticos:**
-
-```
-"Registre a interface ISolutionAdapter como contrato crítico"
-```
-
-**3. Pronto!** Agent agora tem memória do seu projeto.
-
-**📖 [Guia Completo de Uso](docs/AUTO-LEARNING.md)**
-
-### Automaticamente
-
-Quando você abre um arquivo do projeto JARVIS:
-* O agent identifica se é backend ou frontend
-* Carrega automaticamente os guidelines relevantes
-* Checa contratos registrados
-* Valida implementações
-* Aplica padrões aprendidos
-
-### Comandos Úteis
-
-```
-"Me mostre as guidelines de backend para services"
-"Registre este contrato crítico que todas as soluções devem respeitar"
-"Valide esta implementação contra o contrato ISolutionAdapter"
-"Liste todos os contratos registrados"
-"Escanei o projeto e encontre interfaces importantes"
-"Aprenda este padrão que usamos no projeto"
+```typescript
+@project-docs create_project {
+  "project_id": "my-app",
+  "name": "My Application",
+  "description": "Full-stack application",
+  "paths": ["${HOME}/projects/my-app"],
+  "stack": {
+    "backend": "NestJS",
+    "frontend": "React",
+    "database": "PostgreSQL"
+  },
+  "principles": ["SOLID", "Clean Architecture"]
+}
 ```
 
-## Estrutura do Projeto
+### Register a Critical Contract
 
-```
-jarvis-docs-mcp/
-├── src/
-│   ├── index.ts           # MCP Server implementation
-│   └── knowledge-base.ts  # Sistema de aprendizado
-├── docs/
-│   ├── AUTO-LEARNING.md   # 🆕 Guia completo de uso
-│   ├── contracts/         # 🆕 Contratos documentados
-│   ├── patterns/          # 🆕 Padrões do projeto
-│   ├── architecture-decisions/  # 🆕 ADRs
-│   ├── project-overview.md
-│   ├── backend-guidelines.md
-│   ├── frontend-guidelines.md
-│   └── documentation-rules.md
-├── knowledge/             # 🆕 Base de conhecimento persistente
-│   ├── contracts.json     # Contratos registrados
-│   ├── patterns.json      # Padrões aprendidos
-│   └── decisions.json     # Decisões arquiteturais
-├── dist/                  # Build output
-├── package.json
-├── tsconfig.json
-└── README.md
+```typescript
+@project-docs register_contract {
+  "project_id": "my-app",
+  "name": "IUserRepository",
+  "context": "backend",
+  "description": "User repository interface",
+  "interface_code": "export interface IUserRepository { ... }",
+  "rules": [
+    "Must implement findById()",
+    "Must handle errors properly"
+  ]
+}
 ```
 
-## Benefícios
+### Add Documentation (with Duplicate Prevention)
 
-### Para Desenvolvedores
+```typescript
+// System automatically checks for similar docs
+@project-docs manage_documentation {
+  "project_id": "my-app",
+  "action": "create",
+  "title": "Authentication System",
+  "summary": "JWT-based authentication",
+  "topics": ["auth", "jwt", "security"],
+  "context": "backend"
+}
+// → If similar doc exists (≥50%), returns existing doc for update
+```
 
-* ✅ Não precisa repetir instruções para AI agents
-* ✅ Consistência entre backend e frontend
-* 🆕 **Agent NUNCA esquece contratos importantes**
-* 🆕 **Validação automática de implementações**
-* 🆕 **Padrões do projeto persistem entre sessões**
-* ✅ Guidelines sempre atualizados
-* ✅ Menos documentação desnecessária
+### Register a Feature
 
-### Para AI Agents
+```typescript
+@project-docs register_feature {
+  "project_id": "my-app",
+  "name": "User Authentication",
+  "context": "Security",
+  "description": "JWT authentication with refresh tokens",
+  "business_rules": [
+    "Token expires in 15 minutes",
+    "Refresh token valid for 7 days"
+  ],
+  "use_cases": [{
+    "name": "Login",
+    "steps": ["Validate credentials", "Generate JWT", "Return tokens"]
+  }],
+  "related_contracts": ["IAuthService"]
+}
+```
 
-* ✅ Contexto automático baseado em arquivos
-* ✅ Acesso estruturado à documentação
-* ✅ Decisões consistentes sobre documentação
-* ✅ Redução de ambiguidade
+### Learn a Pattern
 
-## Atualizando Documentação
+```typescript
+@project-docs learn_pattern {
+  "project_id": "my-app",
+  "name": "Repository Pattern",
+  "context": "backend",
+  "description": "Data access pattern",
+  "pattern": "class UserRepository extends BaseRepository<User> { ... }",
+  "examples": ["UserRepository", "ProductRepository"]
+}
+```
 
-Para atualizar os guidelines:
+### Validate Code Against Contract
 
-1. Edite os arquivos em `docs/`
-2. Faça rebuild: `npm run build`
-3. Reinicie o agent que está usando o MCP
-
-## Princípios
-
-Este MCP segue os mesmos princípios do projeto JARVIS:
-
-* **Simplicidade**: Documentação direta e objetiva
-* **Consistência**: Mesmos padrões em todo o projeto
-* **Pragmatismo**: Documente apenas o necessário
-* **Automação**: Reduza trabalho manual repetitivo
-
-## Troubleshooting
-
-### MCP não está sendo reconhecido
-
-1. Verifique se o caminho no config está correto (absoluto)
-2. Certifique-se de ter feito `npm run build`
-3. Reinicie o VS Code / Claude Desktop
-
-### Guidelines não estão sendo aplicados
-
-1. Force reload: "Identifique o contexto deste projeto"
-2. Verifique logs: `console.error` no MCP server
-3. Confirme que arquivos em `docs/` existem
-
-## Contribuindo
-
-Para adicionar novos guidelines:
-
-1. Adicione/edite arquivo em `docs/`
-2. Atualize `DOCS` mapping em `src/index.ts`
-3. Adicione resource em `ListResourcesRequestSchema`
-4. Rebuild e teste
-
-## Roadmap
-
-* [ ] Support para mais stacks (Python, Go, etc.)
-* [ ] Integration com ferramentas de linting
-* [ ] Validação automática de padrões
-* [ ] Dashboard de conformidade
-
-## License
-
-MIT
+```typescript
+@project-docs validate_contract {
+  "project_id": "my-app",
+  "contract_name": "IUserRepository",
+  "code": "class UserRepository implements IUserRepository { ... }"
+}
+```
 
 ---
 
-**Projeto JARVIS** - Building the future, one command at a time.
+## 🛠️ Available Tools
+
+| Tool | Purpose |
+|------|---------|
+| `create_project` | Register new project with full configuration |
+| `get_project_info` | Get complete project information |
+| `list_projects` | List all registered projects |
+| `switch_project` | Change current project context |
+| `identify_context` | Auto-detect project and context from file path |
+| `register_contract` | Register critical interface/contract |
+| `get_contracts` | List registered contracts |
+| `validate_contract` | Validate code against contract |
+| `learn_pattern` | Teach project-specific pattern |
+| `scan_project` | Auto-extract patterns from codebase |
+| `register_feature` | Document complete feature with use cases |
+| `get_features` | List features with filtering |
+| `get_feature_context` | Get complete feature context |
+| `update_feature` | Update existing feature |
+| `check_existing_documentation` | Find similar documentation |
+| `manage_documentation` | Create/update documentation with duplicate prevention |
+| `list_documentation` | List all documentation |
+| `add_decision` | Register architectural decision (ADR) |
+| `get_guidelines` | Get context-specific guidelines |
+| `should_document` | Determine if documentation is needed |
+
+---
+
+## 📂 Project Structure
+
+```
+ai-project-docs-mcp/
+├── src/
+│   ├── index.ts              # MCP Server
+│   ├── knowledge-base.ts     # Knowledge management
+│   └── project-manager.ts    # Project management
+├── extension/                # VS Code extension
+│   ├── src/extension.ts
+│   └── package.json
+├── docs/
+│   ├── _shared/              # Shared documentation
+│   │   ├── AUTO-LEARNING.md
+│   │   ├── DOCUMENTATION-MANAGEMENT.md
+│   │   ├── PORTABILITY-SETUP.md
+│   │   └── CLEAN-DISTRIBUTION.md
+│   └── contracts/            # Contract examples
+├── knowledge/                # Knowledge base (per project)
+│   └── example-project/      # Example structure
+│       ├── contracts.json
+│       ├── patterns.json
+│       ├── features.json
+│       ├── decisions.json
+│       └── documentation.json
+├── mcp-config.example.json   # Configuration example
+└── package.json
+```
+
+---
+
+## 🔒 Data Privacy
+
+Your project data stays **private** and **local**:
+
+- ✅ Framework code is public (this repo)
+- ✅ Your projects/docs are stored locally in `knowledge/`
+- ✅ `.gitignore` prevents accidental commits of personal projects
+- ✅ Clean distribution ensures only framework is shared
+
+**Backup your data:**
+```bash
+# Create private repo for your knowledge base
+cd knowledge
+git init
+git remote add origin <your-private-repo>
+git push -u origin main
+```
+
+---
+
+## 🌍 Cross-Machine Setup
+
+Use environment variables for portability:
+
+```json
+{
+  "workspaceRoots": ["${HOME}/projects"],
+  "projects": {
+    "my-app": {
+      "paths": ["${HOME}/projects/my-app"]
+    }
+  }
+}
+```
+
+Supported variables: `${HOME}`, `${USER}`, `${PWD}`
+
+---
+
+## 🎯 Use Cases
+
+### ✅ Prevent Contract Violations
+Register `ISolutionAdapter` once - AI agents will always respect it.
+
+### ✅ Consistent Code Patterns
+Teach error handling pattern once - AI applies it to all new code.
+
+### ✅ Automatic Validation
+Validate implementations against contracts before committing.
+
+### ✅ Instant Onboarding
+New AI agent? Scan project → instant knowledge of all contracts and patterns.
+
+### ✅ Preserve Decisions
+Document PostgreSQL decision → AI never suggests MongoDB again.
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please read our [contributing guidelines](CONTRIBUTING.md) first.
+
+---
+
+## 📄 License
+
+MIT License - see [LICENSE](LICENSE) file for details.
+
+---
+
+## 🔗 Links
+
+- [GitHub Repository](https://github.com/GleidsonFerSanP/ai-project-docs-mcp)
+- [VS Code Extension](https://marketplace.visualstudio.com/) (coming soon)
+- [Model Context Protocol](https://modelcontextprotocol.io/)
+
+---
+
+## 💡 Need Help?
+
+Check the documentation:
+- [Auto-Learning Guide](docs/_shared/AUTO-LEARNING.md)
+- [Documentation Management](docs/_shared/DOCUMENTATION-MANAGEMENT.md)
+- [Portability Setup](docs/_shared/PORTABILITY-SETUP.md)
+- [Clean Distribution](docs/_shared/CLEAN-DISTRIBUTION.md)
+
+Or open an [issue](https://github.com/GleidsonFerSanP/ai-project-docs-mcp/issues).
+
+---
+
+**Built with ❤️ for developers who want AI agents that actually remember.**
