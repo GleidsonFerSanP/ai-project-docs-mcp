@@ -92,10 +92,10 @@
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/seu-usuario/jarvis-docs-mcp.git"
+        "url": "https://github.com/GleidsonFerSanP/ai-project-docs-mcp.git"
     },
     "bugs": {
-        "url": "https://github.com/seu-usuario/jarvis-docs-mcp/issues"
+        "url": "https://github.com/GleidsonFerSanP/ai-project-docs-mcp/issues"
     },
     "license": "MIT"
 }
