@@ -50,7 +50,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 function configureMCP(context: vscode.ExtensionContext) {
     // Caminho do MCP server (bundled na extensão)
-    const mcpServerPath = path.join(context.extensionPath, '..', 'dist', 'index.js');
+    const mcpServerPath = path.join(context.extensionPath, 'mcp-server', 'index.js');
 
     if (!fs.existsSync(mcpServerPath)) {
         vscode.window.showErrorMessage(

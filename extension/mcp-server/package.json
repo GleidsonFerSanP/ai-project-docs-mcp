@@ -1,0 +1,22 @@
+{
+    "name": "project-docs-mcp",
+    "version": "2.5.0",
+    "description": "MCP Server - Sistema Universal de Documentação. Disponível como Extensão VS Code!",
+    "type": "module",
+    "main": "dist/index.js",
+    "bin": {
+        "project-docs-mcp": "./dist/index.js"
+    },
+    "scripts": {
+        "build": "tsc",
+        "dev": "tsc --watch",
+        "start": "node dist/index.js"
+    },
+    "dependencies": {
+        "@modelcontextprotocol/sdk": "^1.0.0"
+    },
+    "devDependencies": {
+        "@types/node": "^20.0.0",
+        "typescript": "^5.3.0"
+    }
+}

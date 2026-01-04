@@ -5,18 +5,25 @@ node_modules
 src
 tsconfig.json
 .gitignore
+package-lock.json
 
-# Não incluir projetos específicos do desenvolvedor
+# Incluir MCP server compilado
+!../dist/**
+!../package.json
+!../mcp-config.example.json
+
+# Incluir knowledge base exemplo
+!../knowledge/example-project/**
+
+# Incluir docs compartilhados
+!../docs/_shared/**
+!../docs/contracts/**
+!../docs/patterns/**
+
+# Excluir projetos pessoais
 ../knowledge/jarvis/**
 ../knowledge/automacao-n8n/**
 ../knowledge/educate/**
-../knowledge/jarvis-docs-mcp/**
 ../docs/jarvis/**
 ../docs/automacao-n8n/**
 ../docs/educate/**
-
-# Incluir apenas estrutura base e exemplos
-!../knowledge/.gitkeep
-!../docs/_shared/**
-!../docs/architecture-decisions/
-!../mcp-config.example.json
