@@ -27,12 +27,8 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Command: Open Documentation
     const viewDocsCmd = vscode.commands.registerCommand('project-docs-mcp.viewDocs', () => {
-        const docsPath = path.join(context.extensionPath, '..', 'docs');
-        if (fs.existsSync(docsPath)) {
-            vscode.env.openExternal(vscode.Uri.file(docsPath));
-        } else {
-            vscode.window.showWarningMessage('Documentation not found!');
-        }
+        // Abrir README no GitHub
+        vscode.env.openExternal(vscode.Uri.parse('https://github.com/GleidsonFerSanP/ai-project-docs-mcp#readme'));
     });
 
     context.subscriptions.push(configureCmd, restartCmd, viewDocsCmd);

@@ -1,182 +1,223 @@
 # Project Docs MCP - VS Code Extension
 
-Sistema Universal de Documentação Multi-Projeto para GitHub Copilot e AI Assistants.
+> **Universal Multi-Project Documentation System for GitHub Copilot and AI Assistants**
 
-## 🚀 Instalação
+Intelligent documentation management with auto-learning, duplicate prevention, and persistent memory for your projects.
 
-1. **Via Marketplace** (recomendado):
-   - Abra VS Code
-   - Procure por "Project Docs MCP"
-   - Clique em "Install"
+## 🚀 Quick Start
 
-2. **Manual** (desenvolvimento):
-   
+### Installation
 
+**From Marketplace** (Recommended):
+1. Open VS Code
+2. Search for "Project Docs MCP"
+3. Click "Install"
+4. Done! Extension auto-configures everything
+
+**From VSIX** (Local):
 ```bash
-   cd extension
-   npm install
-   npm run compile
-   vsce package
-   code --install-extension project-docs-mcp-2.4.0.vsix
-   ```
-
-## ✨ Recursos
-
-### 🤖 Integração Automática com Copilot
-
-* ✅ Configuração automática ao instalar
-* ✅ Disponível via `@project-docs` no Copilot Chat
-* ✅ Sem configuração manual necessária
-
-### 📚 Sistema de Documentação Inteligente
-
-* ✅ Prevenção automática de duplicação
-* ✅ Versionamento de documentos
-* ✅ Busca por similaridade
-* ✅ Multi-projeto
-
-### 🧠 Auto-Learning
-
-* ✅ Registro de contratos/interfaces
-* ✅ Padrões de código
-* ✅ Decisões arquiteturais
-* ✅ Features e casos de uso
-
-### 🌍 Totalmente Portátil
-
-* ✅ Variáveis de ambiente
-* ✅ Funciona em qualquer máquina
-* ✅ Knowledge base compartilhável
-
-## 🎯 Como Usar
-
-### 1. Instale a Extensão
-
-A extensão configura tudo automaticamente!
-
-### 2. Use no Copilot Chat
-
-```
-@project-docs list_projects
+code --install-extension project-docs-mcp-1.0.1.vsix
 ```
 
+### First Use
+
+1. Open GitHub Copilot Chat
+2. Type `@project-docs` to see available commands
+3. Start with: `@project-docs list_projects`
+
+## ✨ Key Features
+
+### 🤖 Seamless Copilot Integration
+- ✅ **Auto-configuration** on install
+- ✅ **`@project-docs`** in Copilot Chat
+- ✅ **Zero manual setup** required
+
+### 🔍 Intelligent Documentation
+- ✅ **Duplicate prevention** (≥50% similarity detection)
+- ✅ **Version tracking** with timestamps
+- ✅ **Smart search** by title, topics, keywords
+- ✅ **Multi-project** support
+
+### 🧠 Auto-Learning System
+- ✅ **Contract registry** - Never forget interfaces
+- ✅ **Pattern learning** - Preserve code patterns
+- ✅ **Architectural decisions** - ADR tracking
+- ✅ **Feature documentation** - Complete use cases
+
+### 🌍 Cross-Machine Portability
+- ✅ **Environment variables** (${HOME}, ${USER})
+- ✅ **Works anywhere** - Mac, Linux, Windows
+- ✅ **Shareable** knowledge base
+
+## 🎯 Usage Examples
+
+### Create Your First Project
+
+```typescript
+@project-docs create_project {
+  "project_id": "my-app",
+  "name": "My Application",
+  "description": "Full-stack web application",
+  "paths": ["${HOME}/projects/my-app"],
+  "stack": {
+    "backend": "NestJS",
+    "frontend": "React",
+    "database": "PostgreSQL"
+  },
+  "principles": ["SOLID", "Clean Architecture"]
+}
 ```
-@project-docs register_feature {
-  "name": "Authentication",
+
+### Register a Critical Contract
+
+```typescript
+@project-docs register_contract {
+  "project_id": "my-app",
+  "name": "IUserRepository",
   "context": "backend",
-  "description": "JWT authentication system",
-  ...
+  "description": "User repository interface",
+  "interface_code": "export interface IUserRepository { ... }",
+  "rules": [
+    "Must implement findById()",
+    "Must handle errors properly"
+  ]
 }
 ```
 
-```
+### Check for Duplicate Documentation
+
+```typescript
 @project-docs check_existing_documentation {
-  "title": "API Documentation",
-  "topics": ["api", "rest", "endpoints"]
+  "project_id": "my-app",
+  "title": "Authentication System",
+  "topics": ["auth", "jwt", "security"]
+}
+// Returns existing docs if similarity ≥50%
+```
+
+### Add Documentation (Auto-Dedup)
+
+```typescript
+@project-docs manage_documentation {
+  "project_id": "my-app",
+  "action": "create",
+  "title": "API Authentication",
+  "summary": "JWT-based authentication with refresh tokens",
+  "topics": ["api", "auth", "jwt"],
+  "context": "backend",
+  "type": "feature"
+}
+// System automatically prevents duplicates!
+```
+
+## 🛠️ Available Tools
+
+### Project Management
+- `create_project` - Register new project
+- `get_project_info` - Get project details
+- `list_projects` - List all projects
+- `switch_project` - Change active project
+- `identify_context` - Auto-detect project from file path
+
+### Documentation
+- `check_existing_documentation` - Find similar docs
+- `manage_documentation` - Create/update with auto-dedup
+- `list_documentation` - List all documents
+
+### Contracts & Patterns
+- `register_contract` - Register critical interface
+- `get_contracts` - List registered contracts
+- `validate_contract` - Validate implementation
+- `learn_pattern` - Teach project pattern
+- `scan_project` - Auto-extract patterns from code
+
+### Features & Use Cases
+- `register_feature` - Document complete feature
+- `get_features` - List features with filters
+- `get_feature_context` - Get full feature context
+- `update_feature` - Update feature status
+
+### Decisions & Guidelines
+- `add_decision` - Record architectural decision (ADR)
+- `get_guidelines` - Get context-specific guidelines
+- `should_document` - Determine if documentation needed
+
+## 📦 Extension Commands
+
+- **Project Docs: Configure** - Reconfigure MCP server
+- **Project Docs: Restart** - Restart MCP server
+- **Project Docs: Open Documentation** - View documentation
+
+## 🔧 Configuration
+
+The extension auto-configures, but you can customize:
+
+**Location:** VS Code Settings → GitHub Copilot → Advanced → MCP
+
+**Config file:** `~/Library/Application Support/Code/User/globalStorage/github.copilot-chat/mcp.json`
+
+**Example:**
+```json
+{
+  "servers": {
+    "project-docs": {
+      "command": "node",
+      "args": ["/path/to/extension/mcp-server/index.js"]
+    }
+  }
 }
 ```
 
-### 3. Comandos da Extensão
+## 🎓 Use Cases
 
-* **Project Docs: Configure** - Reconfigura o MCP
-* **Project Docs: Restart MCP Server** - Reinicia o servidor
-* **Project Docs: Open Documentation** - Abre documentação
+### ✅ Prevent Contract Violations
+Register `IUserService` once → AI never violates it again
 
-## 📖 Ferramentas Disponíveis
+### ✅ Consistent Code Patterns
+Teach error handling pattern → Applied to all new code
 
-### Gerenciamento de Documentação
+### ✅ Automatic Validation
+Validate implementations against contracts before committing
 
-* `check_existing_documentation` - Verifica docs existentes
-* `manage_documentation` - Cria/atualiza documentação
-* `list_documentation` - Lista documentos
+### ✅ Instant Onboarding
+New AI agent? Scan project → Instant knowledge of contracts and patterns
 
-### Contratos e Padrões
+### ✅ Preserve Decisions
+Document PostgreSQL choice → AI never suggests MongoDB again
 
-* `register_contract` - Registra interface crítica
-* `get_contracts` - Lista contratos
-* `validate_contract` - Valida implementação
-* `learn_pattern` - Registra padrão
+## 📚 Documentation
 
-### Features e Casos de Uso
-
-* `register_feature` - Registra feature completa
-* `get_features` - Lista features
-* `get_feature_context` - Contexto completo
-* `update_feature` - Atualiza feature
-
-### Decisões Arquiteturais
-
-* `add_decision` - Registra ADR
-* `scan_project` - Escaneia código automaticamente
-
-### Contexto e Guidelines
-
-* `identify_context` - Identifica backend/frontend
-* `get_guidelines` - Obtém guidelines específicos
-* `should_document` - Decide se precisa documentar
-
-### Projetos
-
-* `create_project` - Cria novo projeto
-* `list_projects` - Lista projetos
-* `switch_project` - Muda projeto ativo
-
-## ⚙️ Configurações
-
-Acesse via `Preferences > Settings > Project Docs MCP` :
-
-* **Auto Start**: Inicia MCP automaticamente (padrão: `true`)
-* **Log Level**: Nível de log (`error`,  `warn`,  `info`,  `debug`)
-* **Default Project**: Projeto padrão quando nenhum é detectado
-
-## 📚 Documentação Completa
-
-* [Sistema de Gerenciamento de Documentação](../docs/_shared/DOCUMENTATION-MANAGEMENT.md)
-* [Guia de Portabilidade](../docs/_shared/PORTABILITY-SETUP.md)
-* [Exemplos de Configuração](../docs/_shared/MCP-CONFIG-EXAMPLES.md)
-* [Guia de Auto-Aprendizado](../docs/_shared/AUTO-LEARNING.md)
+- **GitHub:** [ai-project-docs-mcp](https://github.com/GleidsonFerSanP/ai-project-docs-mcp)
+- **Full Guide:** [README.md](https://github.com/GleidsonFerSanP/ai-project-docs-mcp#readme)
+- **Auto-Learning:** [AUTO-LEARNING.md](https://github.com/GleidsonFerSanP/ai-project-docs-mcp/blob/main/docs/_shared/AUTO-LEARNING.md)
+- **Documentation Management:** [DOCUMENTATION-MANAGEMENT.md](https://github.com/GleidsonFerSanP/ai-project-docs-mcp/blob/main/docs/_shared/DOCUMENTATION-MANAGEMENT.md)
 
 ## 🐛 Troubleshooting
 
-### MCP não aparece no Copilot Chat
+### Extension not showing in Copilot Chat
 
-1. Execute: **Project Docs: Configure**
-2. Reinicie VS Code
-3. Verifique se Copilot está ativo
+1. Check if MCP is configured: `Cmd+Shift+P` → "Preferences: Open User Settings (JSON)"
+2. Verify MCP server path is correct
+3. Restart VS Code: `Cmd+Shift+P` → "Developer: Reload Window"
 
-### Erro ao instalar
+### "MCP Server not found" error
 
-```bash
-# Limpe cache e reinstale
-rm -rf node_modules
-npm install
-npm run compile
-```
+Reinstall the extension - v1.0.1+ includes the MCP server bundled.
 
-### Logs de Debug
+### Commands not working
 
-1. Abra: `View > Output`
-2. Selecione: "Project Docs MCP"
-3. Configure: `Log Level = debug`
+1. Run: `@project-docs list_projects` to test connection
+2. Check MCP config file exists
+3. Verify extension is activated (check Extensions panel)
 
-## 🤝 Contribuindo
+## 📄 License
 
-1. Fork o repositório
-2. Crie uma branch: `git checkout -b feature/nova-feature`
-3. Commit: `git commit -m 'Add nova feature'`
-4. Push: `git push origin feature/nova-feature`
-5. Abra um Pull Request
+MIT License - See [LICENSE](https://github.com/GleidsonFerSanP/ai-project-docs-mcp/blob/main/LICENSE)
 
-## 📝 Licença
+## 🤝 Contributing
 
-MIT License - veja [LICENSE](../LICENSE)
-
-## 🔗 Links
-
-* [GitHub Repository](https://github.com/seu-usuario/jarvis-docs-mcp)
-* [Issues](https://github.com/seu-usuario/jarvis-docs-mcp/issues)
-* [Changelog](../CHANGELOG.md)
+Contributions welcome! Visit [GitHub](https://github.com/GleidsonFerSanP/ai-project-docs-mcp) for issues and PRs.
 
 ---
 
-**Desenvolvido com ❤️ para melhorar a experiência com AI Assistants**
+**Built with ❤️ for developers who want AI agents that actually remember.**
