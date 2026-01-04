@@ -786,6 +786,115 @@ class ProjectDocsServer {
             required: ['title', 'context', 'decision'],
           },
         },
+        {
+          name: 'set_global_guideline',
+          description: 'Define ou atualiza uma guideline global (ex: SOLID, Clean Architecture) que se aplica a todos os seus projetos. Updates automáticos sem duplicação.',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              title: {
+                type: 'string',
+                description: 'Título da guideline (ex: "SOLID Principles", "Clean Code Standards")',
+              },
+              category: {
+                type: 'string',
+                enum: ['architecture', 'coding-standards', 'testing', 'documentation', 'process', 'other'],
+                description: 'Categoria da guideline',
+              },
+              context: {
+                type: 'string',
+                enum: ['backend', 'frontend', 'infrastructure', 'shared', 'all'],
+                description: 'Contexto onde a guideline se aplica (opcional)',
+              },
+              content: {
+                type: 'string',
+                description: 'Conteúdo detalhado da guideline',
+              },
+              principles: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Princípios relacionados (ex: ["Single Responsibility", "Open/Closed"])',
+              },
+              rules: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Regras específicas a seguir',
+              },
+              examples: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Exemplos de código ou aplicação',
+              },
+              priority: {
+                type: 'string',
+                enum: ['mandatory', 'recommended', 'optional'],
+                description: 'Prioridade da guideline',
+              },
+              applyToAllProjects: {
+                type: 'boolean',
+                description: 'Se true, aplica a todos os projetos automaticamente',
+              },
+            },
+            required: ['title', 'category', 'content', 'priority', 'applyToAllProjects'],
+          },
+        },
+        {
+          name: 'get_global_guidelines',
+          description: 'Lista todas as guidelines globais configuradas pelo usuário',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              category: {
+                type: 'string',
+                description: 'Filtrar por categoria (opcional)',
+              },
+              context: {
+                type: 'string',
+                description: 'Filtrar por contexto (opcional)',
+              },
+              priority: {
+                type: 'string',
+                description: 'Filtrar por prioridade (opcional)',
+              },
+              applyToAllProjects: {
+                type: 'boolean',
+                description: 'Filtrar por aplicação a todos os projetos (opcional)',
+              },
+            },
+          },
+        },
+        {
+          name: 'remove_global_guideline',
+          description: 'Remove uma guideline global',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              guideline_id: {
+                type: 'string',
+                description: 'ID da guideline a ser removida',
+              },
+            },
+            required: ['guideline_id'],
+          },
+        },
+        {
+          name: 'get_merged_guidelines',
+          description: 'Obtém guidelines mescladas (globais + específicas do projeto) para um contexto. Use isso ao iniciar trabalho em qualquer arquivo.',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              project_id: {
+                type: 'string',
+                description: 'ID do projeto (opcional, usa projeto atual)',
+              },
+              context: {
+                type: 'string',
+                enum: ['backend', 'frontend', 'infrastructure', 'shared'],
+                description: 'Contexto para obter guidelines (opcional)',
+              },
+            },
+          },
+        },
       ],
     }));
 
@@ -1786,6 +1895,147 @@ class ProjectDocsServer {
                   status: adr.status,
                 },
                 reminder: `Esta decisão deve ser respeitada em todo o projeto '${projectId}'.`,
+              }),
+            }],
+          };
+        }
+
+        case 'set_global_guideline': {
+          const title = args?.title as string;
+          const category = args?.category as 'architecture' | 'coding-standards' | 'testing' | 'documentation' | 'process' | 'other';
+          const context = args?.context as 'backend' | 'frontend' | 'infrastructure' | 'shared' | 'all' | undefined;
+          const content = args?.content as string;
+          const principles = (args?.principles as string[]) || [];
+          const rules = (args?.rules as string[]) || [];
+          const examples = (args?.examples as string[]) || [];
+          const priority = args?.priority as 'mandatory' | 'recommended' | 'optional';
+          const applyToAllProjects = args?.applyToAllProjects as boolean;
+
+          // Usar KB global
+          const kb = new KnowledgeBase(join(__dirname, '../knowledge'), 'global');
+
+          const guideline = kb.setGlobalGuideline({
+            title,
+            category,
+            context,
+            content,
+            principles,
+            rules,
+            examples,
+            priority,
+            applyToAllProjects,
+          });
+
+          return {
+            content: [{
+              type: 'text',
+              text: JSON.stringify({
+                success: true,
+                message: guideline.createdAt === guideline.updatedAt
+                  ? `✅ Global guideline '${title}' criada com sucesso!`
+                  : `✅ Global guideline '${title}' atualizada com sucesso!`,
+                guideline: {
+                  id: guideline.id,
+                  title: guideline.title,
+                  category: guideline.category,
+                  priority: guideline.priority,
+                  applyToAllProjects: guideline.applyToAllProjects,
+                },
+                note: applyToAllProjects
+                  ? 'Esta guideline será aplicada automaticamente a todos os seus projetos.'
+                  : 'Esta guideline está salva mas não se aplica automaticamente.',
+              }),
+            }],
+          };
+        }
+
+        case 'get_global_guidelines': {
+          const category = args?.category as string | undefined;
+          const context = args?.context as string | undefined;
+          const priority = args?.priority as string | undefined;
+          const applyToAllProjects = args?.applyToAllProjects as boolean | undefined;
+
+          const kb = new KnowledgeBase(join(__dirname, '../knowledge'), 'global');
+          const guidelines = kb.getGlobalGuidelines({
+            category,
+            context,
+            priority,
+            applyToAllProjects,
+          });
+
+          if (guidelines.length === 0) {
+            return {
+              content: [{
+                type: 'text',
+                text: JSON.stringify({
+                  success: true,
+                  message: 'Nenhuma global guideline configurada ainda.',
+                  suggestion: 'Use set_global_guideline para definir suas preferências (ex: SOLID, Clean Architecture).',
+                }),
+              }],
+            };
+          }
+
+          return {
+            content: [{
+              type: 'text',
+              text: JSON.stringify({
+                success: true,
+                count: guidelines.length,
+                guidelines: guidelines.map(g => ({
+                  id: g.id,
+                  title: g.title,
+                  category: g.category,
+                  context: g.context,
+                  priority: g.priority,
+                  applyToAllProjects: g.applyToAllProjects,
+                  principlesCount: g.principles?.length || 0,
+                  rulesCount: g.rules?.length || 0,
+                })),
+                message: `Encontradas ${guidelines.length} global guidelines.`,
+              }),
+            }],
+          };
+        }
+
+        case 'remove_global_guideline': {
+          const guidelineId = args?.guideline_id as string;
+
+          const kb = new KnowledgeBase(join(__dirname, '../knowledge'), 'global');
+          const removed = kb.removeGlobalGuideline(guidelineId);
+
+          return {
+            content: [{
+              type: 'text',
+              text: JSON.stringify({
+                success: removed,
+                message: removed
+                  ? `✅ Global guideline removida com sucesso!`
+                  : `❌ Guideline com ID '${guidelineId}' não encontrada.`,
+              }),
+            }],
+          };
+        }
+
+        case 'get_merged_guidelines': {
+          const providedProjectId = args?.project_id as string;
+          const context = args?.context as 'backend' | 'frontend' | 'infrastructure' | 'shared' | undefined;
+
+          const { projectId, kb } = getProjectContext(providedProjectId);
+          const merged = kb.getMergedGuidelines(context);
+
+          return {
+            content: [{
+              type: 'text',
+              text: JSON.stringify({
+                success: true,
+                project: projectId,
+                context: context || 'all',
+                globalGuidelinesCount: merged.global.length,
+                guidelines: merged.merged,
+                message: merged.global.length > 0
+                  ? `📋 ${merged.global.length} global guidelines aplicadas ao contexto ${context || 'all'}`
+                  : 'Nenhuma global guideline aplicável. Configure com set_global_guideline.',
               }),
             }],
           };

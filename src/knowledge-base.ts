@@ -82,22 +82,42 @@ export interface Feature {
   updatedAt: Date;
 }
 
+export interface GlobalGuideline {
+  id: string;
+  title: string;
+  category: 'architecture' | 'coding-standards' | 'testing' | 'documentation' | 'process' | 'other';
+  context?: 'backend' | 'frontend' | 'infrastructure' | 'shared' | 'all';
+  content: string;
+  principles?: string[]; // Ex: ["SOLID", "Clean Architecture", "DDD"]
+  rules?: string[];
+  examples?: string[];
+  priority: 'mandatory' | 'recommended' | 'optional';
+  applyToAllProjects: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export class KnowledgeBase {
   private baseDir: string;
   private projectDir: string;
+  private globalDir: string;
   private contractsPath: string;
   private patternsPath: string;
   private decisionsPath: string;
   private featuresPath: string;
   private documentationPath: string;
+  private globalGuidelinesPath: string;
 
   constructor(knowledgeDir: string, projectId: string = 'default') {
     this.baseDir = knowledgeDir;
     this.projectDir = join(knowledgeDir, projectId);
+    this.globalDir = join(knowledgeDir, 'global');
     this.contractsPath = join(this.projectDir, 'contracts.json');
     this.patternsPath = join(this.projectDir, 'patterns.json');
     this.decisionsPath = join(this.projectDir, 'decisions.json');
     this.featuresPath = join(this.projectDir, 'features.json');
+    this.documentationPath = join(this.projectDir, 'documentation.json');
+    this.globalGuidelinesPath = join(this.globalDir, 'guidelines.json');
     this.documentationPath = join(this.projectDir, 'documentation.json');
   }
 
@@ -729,7 +749,173 @@ export class KnowledgeBase {
     const documentation = this.loadDocumentation();
     return Object.values(documentation).find(d => d.filePath === filePath) || null;
   }
+
+  // ==================== GLOBAL GUIDELINES ====================
+
+  private loadGlobalGuidelines(): Record<string, GlobalGuideline> {
+    if (!require('fs').existsSync(this.globalGuidelinesPath)) {
+      const dir = require('path').dirname(this.globalGuidelinesPath);
+      if (!require('fs').existsSync(dir)) {
+        require('fs').mkdirSync(dir, { recursive: true });
+      }
+      require('fs').writeFileSync(this.globalGuidelinesPath, JSON.stringify({}, null, 2));
+      return {};
+    }
+    const data = readFileSync(this.globalGuidelinesPath, 'utf-8');
+    return JSON.parse(data);
+  }
+
+  private saveGlobalGuidelines(guidelines: Record<string, GlobalGuideline>): void {
+    writeFileSync(this.globalGuidelinesPath, JSON.stringify(guidelines, null, 2));
+  }
+
+  /**
+   * Define ou atualiza uma guideline global
+   */
+  setGlobalGuideline(guideline: Omit<GlobalGuideline, 'id' | 'createdAt' | 'updatedAt'>): GlobalGuideline {
+    const guidelines = this.loadGlobalGuidelines();
+    
+    // Verificar se já existe guideline similar para evitar duplicação
+    const existing = Object.values(guidelines).find(g =>
+      g.title.toLowerCase() === guideline.title.toLowerCase() &&
+      g.category === guideline.category
+    );
+
+    if (existing) {
+      // Update existente
+      existing.content = guideline.content;
+      existing.context = guideline.context;
+      existing.principles = guideline.principles;
+      existing.rules = guideline.rules;
+      existing.examples = guideline.examples;
+      existing.priority = guideline.priority;
+      existing.applyToAllProjects = guideline.applyToAllProjects;
+      existing.updatedAt = new Date();
+      
+      guidelines[existing.id] = existing;
+      this.saveGlobalGuidelines(guidelines);
+      return existing;
+    }
+
+    // Criar novo
+    const newGuideline: GlobalGuideline = {
+      id: Date.now().toString(),
+      ...guideline,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+
+    guidelines[newGuideline.id] = newGuideline;
+    this.saveGlobalGuidelines(guidelines);
+    return newGuideline;
+  }
+
+  /**
+   * Lista todas as guidelines globais
+   */
+  getGlobalGuidelines(filters?: {
+    category?: string;
+    context?: string;
+    priority?: string;
+    applyToAllProjects?: boolean;
+  }): GlobalGuideline[] {
+    const guidelines = this.loadGlobalGuidelines();
+    let result = Object.values(guidelines);
+
+    if (filters) {
+      if (filters.category) {
+        result = result.filter(g => g.category === filters.category);
+      }
+      if (filters.context) {
+        result = result.filter(g => !g.context || g.context === filters.context || g.context === 'all');
+      }
+      if (filters.priority) {
+        result = result.filter(g => g.priority === filters.priority);
+      }
+      if (filters.applyToAllProjects !== undefined) {
+        result = result.filter(g => g.applyToAllProjects === filters.applyToAllProjects);
+      }
+    }
+
+    return result.sort((a, b) => {
+      // Ordenar por prioridade: mandatory > recommended > optional
+      const priorityOrder = { mandatory: 0, recommended: 1, optional: 2 };
+      return priorityOrder[a.priority] - priorityOrder[b.priority];
+    });
+  }
+
+  /**
+   * Remove uma guideline global
+   */
+  removeGlobalGuideline(id: string): boolean {
+    const guidelines = this.loadGlobalGuidelines();
+    if (guidelines[id]) {
+      delete guidelines[id];
+      this.saveGlobalGuidelines(guidelines);
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Obtém guidelines mescladas (global + project-specific)
+   * Guidelines globais são aplicadas primeiro, depois project-specific sobrescreve se houver conflito
+   */
+  getMergedGuidelines(context?: 'backend' | 'frontend' | 'infrastructure' | 'shared'): {
+    global: GlobalGuideline[];
+    projectSpecific: any[]; // Pode ser expandido com guidelines específicas do projeto
+    merged: string; // Texto formatado pronto para uso pelo AI
+  } {
+    const globalGuidelines = this.getGlobalGuidelines({
+      context: context,
+      applyToAllProjects: true
+    });
+
+    // Formatar para texto legível
+    let merged = '';
+    
+    if (globalGuidelines.length > 0) {
+      merged += '# Global Guidelines\n\n';
+      
+      const byCategory = globalGuidelines.reduce((acc, g) => {
+        if (!acc[g.category]) acc[g.category] = [];
+        acc[g.category].push(g);
+        return acc;
+      }, {} as Record<string, GlobalGuideline[]>);
+
+      for (const [category, guidelines] of Object.entries(byCategory)) {
+        merged += `## ${category.toUpperCase()}\n\n`;
+        for (const g of guidelines) {
+          merged += `### ${g.title} (${g.priority})\n`;
+          merged += `${g.content}\n\n`;
+          
+          if (g.principles && g.principles.length > 0) {
+            merged += `**Principles:** ${g.principles.join(', ')}\n\n`;
+          }
+          
+          if (g.rules && g.rules.length > 0) {
+            merged += `**Rules:**\n`;
+            g.rules.forEach(r => merged += `- ${r}\n`);
+            merged += '\n';
+          }
+          
+          if (g.examples && g.examples.length > 0) {
+            merged += `**Examples:**\n`;
+            g.examples.forEach(e => merged += `\`\`\`\n${e}\n\`\`\`\n`);
+            merged += '\n';
+          }
+        }
+      }
+    }
+
+    return {
+      global: globalGuidelines,
+      projectSpecific: [], // TODO: Implementar guidelines específicas do projeto se necessário
+      merged
+    };
+  }
 }
+
 
 
 

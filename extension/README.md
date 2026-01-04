@@ -15,6 +15,7 @@ Intelligent documentation management with auto-learning, duplicate prevention, a
 4. Done! Extension auto-configures everything
 
 **From VSIX** (Local):
+
 ```bash
 code --install-extension project-docs-mcp-1.0.1.vsix
 ```
@@ -28,26 +29,30 @@ code --install-extension project-docs-mcp-1.0.1.vsix
 ## ✨ Key Features
 
 ### 🤖 Seamless Copilot Integration
-- ✅ **Auto-configuration** on install
-- ✅ **`@project-docs`** in Copilot Chat
-- ✅ **Zero manual setup** required
+
+* ✅ **Auto-configuration** on install
+* ✅ **`@project-docs`** in Copilot Chat
+* ✅ **Zero manual setup** required
 
 ### 🔍 Intelligent Documentation
-- ✅ **Duplicate prevention** (≥50% similarity detection)
-- ✅ **Version tracking** with timestamps
-- ✅ **Smart search** by title, topics, keywords
-- ✅ **Multi-project** support
+
+* ✅ **Duplicate prevention** (≥50% similarity detection)
+* ✅ **Version tracking** with timestamps
+* ✅ **Smart search** by title, topics, keywords
+* ✅ **Multi-project** support
 
 ### 🧠 Auto-Learning System
-- ✅ **Contract registry** - Never forget interfaces
-- ✅ **Pattern learning** - Preserve code patterns
-- ✅ **Architectural decisions** - ADR tracking
-- ✅ **Feature documentation** - Complete use cases
+
+* ✅ **Contract registry** - Never forget interfaces
+* ✅ **Pattern learning** - Preserve code patterns
+* ✅ **Architectural decisions** - ADR tracking
+* ✅ **Feature documentation** - Complete use cases
 
 ### 🌍 Cross-Machine Portability
-- ✅ **Environment variables** (${HOME}, ${USER})
-- ✅ **Works anywhere** - Mac, Linux, Windows
-- ✅ **Shareable** knowledge base
+
+* ✅ **Environment variables** (${HOME}, ${USER})
+* ✅ **Works anywhere** - Mac, Linux, Windows
+* ✅ **Shareable** knowledge base
 
 ## 🎯 Usage Examples
 
@@ -113,40 +118,45 @@ code --install-extension project-docs-mcp-1.0.1.vsix
 ## 🛠️ Available Tools
 
 ### Project Management
-- `create_project` - Register new project
-- `get_project_info` - Get project details
-- `list_projects` - List all projects
-- `switch_project` - Change active project
-- `identify_context` - Auto-detect project from file path
+
+* `create_project` - Register new project
+* `get_project_info` - Get project details
+* `list_projects` - List all projects
+* `switch_project` - Change active project
+* `identify_context` - Auto-detect project from file path
 
 ### Documentation
-- `check_existing_documentation` - Find similar docs
-- `manage_documentation` - Create/update with auto-dedup
-- `list_documentation` - List all documents
+
+* `check_existing_documentation` - Find similar docs
+* `manage_documentation` - Create/update with auto-dedup
+* `list_documentation` - List all documents
 
 ### Contracts & Patterns
-- `register_contract` - Register critical interface
-- `get_contracts` - List registered contracts
-- `validate_contract` - Validate implementation
-- `learn_pattern` - Teach project pattern
-- `scan_project` - Auto-extract patterns from code
+
+* `register_contract` - Register critical interface
+* `get_contracts` - List registered contracts
+* `validate_contract` - Validate implementation
+* `learn_pattern` - Teach project pattern
+* `scan_project` - Auto-extract patterns from code
 
 ### Features & Use Cases
-- `register_feature` - Document complete feature
-- `get_features` - List features with filters
-- `get_feature_context` - Get full feature context
-- `update_feature` - Update feature status
+
+* `register_feature` - Document complete feature
+* `get_features` - List features with filters
+* `get_feature_context` - Get full feature context
+* `update_feature` - Update feature status
 
 ### Decisions & Guidelines
-- `add_decision` - Record architectural decision (ADR)
-- `get_guidelines` - Get context-specific guidelines
-- `should_document` - Determine if documentation needed
+
+* `add_decision` - Record architectural decision (ADR)
+* `get_guidelines` - Get context-specific guidelines
+* `should_document` - Determine if documentation needed
 
 ## 📦 Extension Commands
 
-- **Project Docs: Configure** - Reconfigure MCP server
-- **Project Docs: Restart** - Restart MCP server
-- **Project Docs: Open Documentation** - View documentation
+* **Project Docs: Configure** - Reconfigure MCP server
+* **Project Docs: Restart** - Restart MCP server
+* **Project Docs: Open Documentation** - View documentation
 
 ## 🔧 Configuration
 
@@ -157,6 +167,7 @@ The extension auto-configures, but you can customize:
 **Config file:** `~/Library/Application Support/Code/User/globalStorage/github.copilot-chat/mcp.json`
 
 **Example:**
+
 ```json
 {
   "servers": {
@@ -171,26 +182,31 @@ The extension auto-configures, but you can customize:
 ## 🎓 Use Cases
 
 ### ✅ Prevent Contract Violations
+
 Register `IUserService` once → AI never violates it again
 
 ### ✅ Consistent Code Patterns
+
 Teach error handling pattern → Applied to all new code
 
 ### ✅ Automatic Validation
+
 Validate implementations against contracts before committing
 
 ### ✅ Instant Onboarding
+
 New AI agent? Scan project → Instant knowledge of contracts and patterns
 
 ### ✅ Preserve Decisions
+
 Document PostgreSQL choice → AI never suggests MongoDB again
 
 ## 📚 Documentation
 
-- **GitHub:** [ai-project-docs-mcp](https://github.com/GleidsonFerSanP/ai-project-docs-mcp)
-- **Full Guide:** [README.md](https://github.com/GleidsonFerSanP/ai-project-docs-mcp#readme)
-- **Auto-Learning:** [AUTO-LEARNING.md](https://github.com/GleidsonFerSanP/ai-project-docs-mcp/blob/main/docs/_shared/AUTO-LEARNING.md)
-- **Documentation Management:** [DOCUMENTATION-MANAGEMENT.md](https://github.com/GleidsonFerSanP/ai-project-docs-mcp/blob/main/docs/_shared/DOCUMENTATION-MANAGEMENT.md)
+* **GitHub:** [ai-project-docs-mcp](https://github.com/GleidsonFerSanP/ai-project-docs-mcp)
+* **Full Guide:** [README.md](https://github.com/GleidsonFerSanP/ai-project-docs-mcp#readme)
+* **Auto-Learning:** [AUTO-LEARNING.md](https://github.com/GleidsonFerSanP/ai-project-docs-mcp/blob/main/docs/_shared/AUTO-LEARNING.md)
+* **Documentation Management:** [DOCUMENTATION-MANAGEMENT.md](https://github.com/GleidsonFerSanP/ai-project-docs-mcp/blob/main/docs/_shared/DOCUMENTATION-MANAGEMENT.md)
 
 ## 🐛 Troubleshooting
 
