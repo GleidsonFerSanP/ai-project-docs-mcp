@@ -1,6 +1,7 @@
 .vscode
 .git
 node_modules
+!mcp-server/node_modules/**
 *.vsix
 src
 tsconfig.json

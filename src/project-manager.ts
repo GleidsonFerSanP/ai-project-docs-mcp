@@ -1,5 +1,6 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
+import { homedir } from 'os';
 
 export interface ProjectStack {
   [key: string]: any;
@@ -25,9 +26,70 @@ export class ProjectManager {
   private configPath: string;
   private currentProject?: string;
 
-  constructor(configPath: string) {
-    this.configPath = configPath;
+  constructor(configPath?: string) {
+    this.configPath = configPath || this.getGlobalConfigPath();
+    this.ensureConfigExists();
     this.config = this.loadConfig();
+  }
+
+  /**
+   * Retorna o caminho global do diretório de configuração
+   */
+  private getGlobalConfigPath(): string {
+    const globalDir = join(homedir(), '.project-docs-mcp');
+    return join(globalDir, 'mcp-config.json');
+  }
+
+  /**
+   * Garante que a estrutura de diretórios e config padrão existem
+   */
+  private ensureConfigExists(): void {
+    const configDir = dirname(this.configPath);
+    
+    // Criar diretório se não existir
+    if (!existsSync(configDir)) {
+      mkdirSync(configDir, { recursive: true });
+    }
+
+    // Criar knowledge base directory
+    const knowledgeDir = join(configDir, 'knowledge');
+    if (!existsSync(knowledgeDir)) {
+      mkdirSync(knowledgeDir, { recursive: true });
+    }
+
+    // Criar docs directory
+    const docsDir = join(configDir, 'docs');
+    if (!existsSync(docsDir)) {
+      mkdirSync(docsDir, { recursive: true });
+    }
+
+    // Criar config padrão se não existir
+    if (!existsSync(this.configPath)) {
+      const defaultConfig: McpConfig = {
+        version: '1.2.0',
+        defaultProject: 'default',
+        workspaceRoots: [
+          '${HOME}/workspace',
+          '${HOME}/projects',
+          '${HOME}/dev'
+        ],
+        projects: {
+          default: {
+            name: 'Default Project',
+            description: 'Default project configuration. Edit ~/.project-docs-mcp/mcp-config.json to customize.',
+            paths: ['${HOME}/workspace', '${HOME}/projects'],
+            stack: {
+              backend: 'Node.js',
+              frontend: 'React'
+            },
+            principles: ['SOLID', 'Clean Code']
+          }
+        }
+      };
+
+      writeFileSync(this.configPath, JSON.stringify(defaultConfig, null, 2), 'utf-8');
+      console.log(`[Project Docs MCP] Created default config at: ${this.configPath}`);
+    }
   }
 
   private loadConfig(): McpConfig {

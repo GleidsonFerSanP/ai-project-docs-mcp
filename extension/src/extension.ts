@@ -5,7 +5,26 @@ import * as fs from 'fs';
 export function activate(context: vscode.ExtensionContext) {
     console.log('Project Docs MCP extension is now active!');
 
-    // Configurar MCP automaticamente ao ativar
+    // Garantir que estrutura global existe
+    ensureGlobalStructure();
+
+    // Registrar MCP Server Definition Provider (API moderna do VS Code)
+    context.subscriptions.push(
+        vscode.lm.registerMcpServerDefinitionProvider('project-docs', {
+            provideMcpServerDefinitions() {
+                const mcpServerPath = path.join(context.extensionPath, 'mcp-server', 'index.js');
+                return [
+                    new vscode.McpStdioServerDefinition(
+                        'project-docs',
+                        'node',
+                        [mcpServerPath]
+                    )
+                ];
+            }
+        })
+    );
+
+    // Configurar MCP automaticamente ao ativar (fallback para versões antigas)
     const config = vscode.workspace.getConfiguration('projectDocsMcp');
     const autoStart = config.get<boolean>('autoStart', true);
 
@@ -44,6 +63,66 @@ export function activate(context: vscode.ExtensionContext) {
     });
 }
 
+function ensureGlobalStructure() {
+    const homeDir = process.env.HOME || process.env.USERPROFILE;
+    if (!homeDir) {
+        console.error('Could not determine home directory');
+        return;
+    }
+
+    const globalDir = path.join(homeDir, '.project-docs-mcp');
+    const configPath = path.join(globalDir, 'mcp-config.json');
+    const knowledgeDir = path.join(globalDir, 'knowledge');
+    const docsDir = path.join(globalDir, 'docs');
+
+    // Criar diretórios se não existirem
+    [globalDir, knowledgeDir, docsDir].forEach(dir => {
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+            console.log(`Created directory: ${dir}`);
+        }
+    });
+
+    // Criar config padrão se não existir
+    if (!fs.existsSync(configPath)) {
+        const defaultConfig = {
+            version: '1.2.0',
+            defaultProject: 'default',
+            workspaceRoots: [
+                '${HOME}/workspace',
+                '${HOME}/projects',
+                '${HOME}/dev'
+            ],
+            projects: {
+                default: {
+                    name: 'Default Project',
+                    description: 'Default project configuration. Edit ~/.project-docs-mcp/mcp-config.json to customize.',
+                    paths: ['${HOME}/workspace', '${HOME}/projects'],
+                    stack: {
+                        backend: 'Node.js',
+                        frontend: 'React'
+                    },
+                    principles: ['SOLID', 'Clean Code']
+                }
+            }
+        };
+
+        fs.writeFileSync(configPath, JSON.stringify(defaultConfig, null, 2), 'utf-8');
+        console.log(`Created default config at: ${configPath}`);
+        
+        vscode.window.showInformationMessage(
+            `Project Docs MCP initialized at ${globalDir}`,
+            'Open Config'
+        ).then(selection => {
+            if (selection === 'Open Config') {
+                vscode.workspace.openTextDocument(configPath).then(doc => {
+                    vscode.window.showTextDocument(doc);
+                });
+            }
+        });
+    }
+}
+
 function configureMCP(context: vscode.ExtensionContext) {
     // Caminho do MCP server (bundled na extensão)
     const mcpServerPath = path.join(context.extensionPath, 'mcp-server', 'index.js');
@@ -55,44 +134,77 @@ function configureMCP(context: vscode.ExtensionContext) {
         return;
     }
 
-    // Criar/atualizar configuração MCP do Copilot
-    const mcpConfig = getMCPConfigPath();
+    // GitHub Copilot usa mcpServers.json (não mcp.json)
+    const mcpConfigDir = getMCPConfigDir();
     
-    if (!mcpConfig) {
+    if (!mcpConfigDir) {
         vscode.window.showWarningMessage(
             'Could not locate MCP config path. Please configure manually.'
         );
         return;
     }
 
+    // Criar diretório se não existir
+    if (!fs.existsSync(mcpConfigDir)) {
+        fs.mkdirSync(mcpConfigDir, { recursive: true });
+    }
+
+    const mcpServersPath = path.join(mcpConfigDir, 'mcpServers.json');
+
     // Ler configuração existente ou criar nova
-    let config: any = { servers: {} };
+    let config: any = { mcpServers: {} };
     
-    if (fs.existsSync(mcpConfig)) {
+    if (fs.existsSync(mcpServersPath)) {
         try {
-            const content = fs.readFileSync(mcpConfig, 'utf-8');
+            const content = fs.readFileSync(mcpServersPath, 'utf-8');
             config = JSON.parse(content);
+            if (!config.mcpServers) {
+                config.mcpServers = {};
+            }
         } catch (error) {
             console.error('Error reading MCP config:', error);
+            config = { mcpServers: {} };
         }
     }
 
     // Adicionar/atualizar configuração do Project Docs MCP
-    config.servers['project-docs'] = {
+    config.mcpServers['project-docs'] = {
         command: 'node',
-        args: [mcpServerPath]
+        args: [mcpServerPath],
+        disabled: false,
+        alwaysAllow: [
+            'create_project',
+            'list_projects',
+            'get_project_info',
+            'switch_project',
+            'identify_context',
+            'get_guidelines',
+            'should_document',
+            'register_contract',
+            'get_contracts',
+            'validate_contract',
+            'learn_pattern',
+            'scan_project',
+            'add_decision',
+            'register_feature',
+            'get_features',
+            'update_feature',
+            'get_feature_context'
+        ]
     };
-
-    // Criar diretório se não existir
-    const configDir = path.dirname(mcpConfig);
-    if (!fs.existsSync(configDir)) {
-        fs.mkdirSync(configDir, { recursive: true });
-    }
 
     // Salvar configuração
     try {
-        fs.writeFileSync(mcpConfig, JSON.stringify(config, null, 2), 'utf-8');
-        console.log('MCP config updated successfully at:', mcpConfig);
+        fs.writeFileSync(mcpServersPath, JSON.stringify(config, null, 4), 'utf-8');
+        console.log('MCP config updated successfully at:', mcpServersPath);
+        vscode.window.showInformationMessage(
+            'Project Docs MCP configured! Please reload VS Code to activate.',
+            'Reload Now'
+        ).then(selection => {
+            if (selection === 'Reload Now') {
+                vscode.commands.executeCommand('workbench.action.reloadWindow');
+            }
+        });
     } catch (error) {
         vscode.window.showErrorMessage(
             `Failed to update MCP config: ${error}`
@@ -100,7 +212,7 @@ function configureMCP(context: vscode.ExtensionContext) {
     }
 }
 
-function getMCPConfigPath(): string | null {
+function getMCPConfigDir(): string | null {
     const platform = process.platform;
     const homeDir = process.env.HOME || process.env.USERPROFILE;
 
@@ -108,31 +220,29 @@ function getMCPConfigPath(): string | null {
         return null;
     }
 
-    let configPath: string;
+    let configDir: string;
 
     switch (platform) {
         case 'darwin': // macOS
-            configPath = path.join(
+            configDir = path.join(
                 homeDir,
                 'Library',
                 'Application Support',
                 'Code',
                 'User',
                 'globalStorage',
-                'github.copilot-chat',
-                'mcp.json'
+                'github.copilot-chat'
             );
             break;
 
         case 'linux':
-            configPath = path.join(
+            configDir = path.join(
                 homeDir,
                 '.config',
                 'Code',
                 'User',
                 'globalStorage',
-                'github.copilot-chat',
-                'mcp.json'
+                'github.copilot-chat'
             );
             break;
 
@@ -141,13 +251,12 @@ function getMCPConfigPath(): string | null {
             if (!appData) {
                 return null;
             }
-            configPath = path.join(
+            configDir = path.join(
                 appData,
                 'Code',
                 'User',
                 'globalStorage',
-                'github.copilot-chat',
-                'mcp.json'
+                'github.copilot-chat'
             );
             break;
 
@@ -155,7 +264,7 @@ function getMCPConfigPath(): string | null {
             return null;
     }
 
-    return configPath;
+    return configDir;
 }
 
 export function deactivate() {

@@ -22,7 +22,8 @@ class ProjectDocsServer {
   private projectManager: ProjectManager;
 
   constructor() {
-    this.projectManager = new ProjectManager(join(__dirname, '../mcp-config.json'));
+    // ProjectManager agora usa caminho global automaticamente (~/.project-docs-mcp/)
+    this.projectManager = new ProjectManager();
     
     this.server = new Server(
       {
