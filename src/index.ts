@@ -4,6 +4,8 @@ import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import {
   CallToolRequestSchema,
+  GetPromptRequestSchema,
+  ListPromptsRequestSchema,
   ListResourcesRequestSchema,
   ListToolsRequestSchema,
   ReadResourceRequestSchema,
@@ -137,6 +139,151 @@ class ProjectDocsServer {
       }
 
       throw new Error(`Unknown resource: ${uri}`);
+    });
+
+    // List available prompts
+    this.server.setRequestHandler(ListPromptsRequestSchema, async () => {
+      const currentProject = this.projectManager.getCurrentProject();
+      const config = currentProject ? this.projectManager.getProjectConfig(currentProject) : null;
+      
+      return {
+        prompts: [
+          {
+            name: 'project-context',
+            description: 'Contexto completo do projeto atual incluindo arquitetura, contratos e guidelines',
+            arguments: [
+              {
+                name: 'project_id',
+                description: 'ID do projeto (opcional, usa projeto atual se omitido)',
+                required: false,
+              },
+            ],
+          },
+          {
+            name: 'coding-session',
+            description: 'Prepara o contexto para uma sessão de desenvolvimento com todas as guidelines e padrões',
+            arguments: [
+              {
+                name: 'context',
+                description: 'Contexto: backend, frontend, infrastructure',
+                required: true,
+              },
+            ],
+          },
+        ],
+      };
+    });
+
+    // Get specific prompt
+    this.server.setRequestHandler(GetPromptRequestSchema, async (request) => {
+      const { name, arguments: args } = request.params;
+
+      if (name === 'project-context') {
+        const projectId = args?.project_id || this.projectManager.getCurrentProject();
+        if (!projectId) {
+          return {
+            messages: [{
+              role: 'user',
+              content: {
+                type: 'text',
+                text: 'Nenhum projeto configurado. Use create_project ou switch_project primeiro.',
+              },
+            }],
+          };
+        }
+
+        const config = this.projectManager.getProjectConfig(projectId);
+        const knowledgePath = this.projectManager.getKnowledgePath(__dirname, projectId);
+        const kb = new KnowledgeBase(knowledgePath);
+        
+        const contracts = kb.getAllContracts();
+        const patterns = kb.getAllPatterns();
+        const decisions = kb.getAllDecisions();
+
+        let context = `# Contexto do Projeto: ${config?.name || projectId}\n\n`;
+        context += `## Descrição\n${config?.description}\n\n`;
+        context += `## Stack Tecnológico\n\`\`\`json\n${JSON.stringify(config?.stack, null, 2)}\n\`\`\`\n\n`;
+        context += `## Princípios\n${config?.principles.map((p: string) => `- ${p}`).join('\n')}\n\n`;
+
+        if (contracts && contracts.length > 0) {
+          context += `## Contratos Críticos\n`;
+          contracts.forEach((c: any) => {
+            context += `### ${c.name} (${c.context})\n`;
+            context += `${c.description}\n`;
+            context += `**Regras:**\n${c.rules.map((r: string) => `- ${r}`).join('\n')}\n\n`;
+          });
+        }
+
+        if (patterns && patterns.length > 0) {
+          context += `## Padrões do Projeto\n`;
+          patterns.forEach((p: any) => {
+            context += `### ${p.name} (${p.context})\n`;
+            context += `${p.description}\n\n`;
+          });
+        }
+
+        if (decisions && decisions.length > 0) {
+          context += `## Decisões Arquiteturais Recentes\n`;
+          decisions.slice(-5).forEach((d: any) => {
+            context += `### ${d.title}\n`;
+            context += `**Contexto:** ${d.context}\n`;
+            context += `**Decisão:** ${d.decision}\n\n`;
+          });
+        }
+
+        return {
+          messages: [
+            {
+              role: 'user',
+              content: {
+                type: 'text',
+                text: context,
+              },
+            },
+          ],
+        };
+      }
+
+      if (name === 'coding-session') {
+        const context = args?.context;
+        if (!context) {
+          throw new Error('Contexto é obrigatório (backend, frontend, infrastructure)');
+        }
+
+        const projectId = this.projectManager.getCurrentProject();
+        const config = projectId ? this.projectManager.getProjectConfig(projectId) : null;
+
+        let prompt = `# Iniciando Sessão de Desenvolvimento - ${context}\n\n`;
+        
+        if (config) {
+          prompt += `## Projeto: ${config.name}\n\n`;
+          prompt += `### Stack (${context})\n`;
+          if (context === 'backend' && config.stack.backend) {
+            prompt += `- Framework: ${JSON.stringify(config.stack.backend)}\n`;
+          } else if (context === 'frontend' && config.stack.frontend) {
+            prompt += `- Framework: ${JSON.stringify(config.stack.frontend)}\n`;
+          }
+          prompt += `\n### Princípios\n${config.principles.map((p: string) => `- ${p}`).join('\n')}\n\n`;
+        }
+
+        prompt += `\n**IMPORTANTE:** Mantenha essas guidelines em mente durante toda a conversa. `;
+        prompt += `Valide implementações contra contratos registrados usando get_contracts. `;
+        prompt += `Use identify_context para entender melhor o arquivo atual.`;
+
+        return {
+          messages: [
+            {
+              role: 'user',
+              content: {
+                type: 'text',
+                text: prompt,
+              },
+            },
+          ],
+        };
+      }
+
+      throw new Error(`Unknown prompt: ${name}`);
     });
 
     // List available tools
@@ -1243,7 +1390,7 @@ class ProjectDocsServer {
                   keywords: document.keywords,
                   context: document.context,
                   type: document.type,
-                  last_updated: document.lastUpdated,
+                  last_updated: document.lastUpdated instanceof Date ? document.lastUpdated.toISOString() : document.lastUpdated,
                   version: document.version,
                 })),
                 project: projectId,
@@ -1291,7 +1438,7 @@ class ProjectDocsServer {
                       file_path: topMatch.document.filePath,
                       similarity_score: topMatch.similarity,
                       version: topMatch.document.version,
-                      last_updated: topMatch.document.lastUpdated,
+                      last_updated: topMatch.document.lastUpdated instanceof Date ? topMatch.document.lastUpdated.toISOString() : topMatch.document.lastUpdated,
                     },
                     recommendation: `Use manage_documentation com action='update' e document_id='${topMatch.document.id}' para atualizar o documento existente.`,
                     alternative: 'Se realmente deseja criar novo documento separado, use force_create=true',
@@ -1400,7 +1547,7 @@ class ProjectDocsServer {
                     title: doc.title,
                     file_path: doc.filePath,
                     version: doc.version,
-                    last_updated: doc.lastUpdated,
+                    last_updated: doc.lastUpdated instanceof Date ? doc.lastUpdated.toISOString() : doc.lastUpdated,
                   },
                   next_steps: [
                     `Atualize o arquivo: ${doc.filePath}`,
@@ -1455,8 +1602,8 @@ class ProjectDocsServer {
                   keywords: doc.keywords,
                   summary: doc.summary,
                   version: doc.version,
-                  last_updated: doc.lastUpdated,
-                  created_at: doc.createdAt,
+                  last_updated: doc.lastUpdated instanceof Date ? doc.lastUpdated.toISOString() : doc.lastUpdated,
+                  created_at: doc.createdAt instanceof Date ? doc.createdAt.toISOString() : doc.createdAt,
                 })),
               }),
             }],
