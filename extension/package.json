@@ -1,10 +1,9 @@
 {
     "name": "project-docs-mcp",
     "displayName": "Project Docs MCP",
-    "description": "Sistema Universal de Documentação Multi-Projeto com Auto-Learning e Prevenção de Duplicação",
-    "version": "2.5.0",
-    "publisher": "seu-publisher-id",
-    "icon": "icon.png",
+    "description": "Universal multi-project documentation system with auto-learning and duplicate prevention for AI assistants",
+    "version": "1.0.0",
+    "publisher": "GleidsonFerSanP",
     "engines": {
         "vscode": "^1.85.0"
     },
