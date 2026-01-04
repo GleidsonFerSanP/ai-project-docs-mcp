@@ -28,3 +28,4 @@ package-lock.json
 ../docs/jarvis/**
 ../docs/automacao-n8n/**
 ../docs/educate/**
+.env

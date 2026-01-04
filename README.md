@@ -7,6 +7,8 @@ Model Context Protocol (MCP) server that acts as a **single source of truth** fo
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue)](https://www.typescriptlang.org/)
 [![MCP](https://img.shields.io/badge/MCP-1.0-green)](https://modelcontextprotocol.io/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![VS Code Marketplace](https://img.shields.io/visual-studio-marketplace/v/GleidsonFerSanP.project-docs-mcp)](https://marketplace.visualstudio.com/items?itemName=GleidsonFerSanP.project-docs-mcp)
+[![VS Code Installs](https://img.shields.io/visual-studio-marketplace/i/GleidsonFerSanP.project-docs-mcp)](https://marketplace.visualstudio.com/items?itemName=GleidsonFerSanP.project-docs-mcp)
 
 ---
 
@@ -63,7 +65,7 @@ One-click installation with automatic MCP configuration.
 ## 🚀 Quick Start
 
 ### Option 1: VS Code Extension (Recommended)
-
+VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=GleidsonFerSanP.project-docs-mcp)
 1. **Install from VS Code Marketplace**
    - Search for "Project Docs MCP" or visit [marketplace link]
    - Click Install
