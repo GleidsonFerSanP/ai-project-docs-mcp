@@ -12,8 +12,19 @@ export class KnowledgeBase {
     globalGuidelinesPath;
     constructor(knowledgeDir, projectId = 'default') {
         this.baseDir = knowledgeDir;
-        this.projectDir = join(knowledgeDir, projectId);
-        this.globalDir = join(knowledgeDir, 'global');
+        // ✅ FIXED: Se knowledgeDir termina com .project-docs-mcp, já estamos no contexto do projeto
+        // Não adicionar projectId como subdiretório
+        const isProjectContext = knowledgeDir.endsWith('.project-docs-mcp');
+        if (isProjectContext) {
+            // Contexto do projeto: arquivos diretos em .project-docs-mcp/
+            this.projectDir = knowledgeDir;
+            this.globalDir = join(knowledgeDir, 'global');
+        }
+        else {
+            // Contexto global: estrutura antiga ~/.project-docs-mcp/knowledge/{projectId}/
+            this.projectDir = join(knowledgeDir, projectId);
+            this.globalDir = join(knowledgeDir, 'global');
+        }
         this.contractsPath = join(this.projectDir, 'contracts.json');
         this.patternsPath = join(this.projectDir, 'patterns.json');
         this.decisionsPath = join(this.projectDir, 'decisions.json');
@@ -44,7 +55,18 @@ export class KnowledgeBase {
     loadContracts() {
         try {
             const data = readFileSync(this.contractsPath, 'utf-8');
-            return JSON.parse(data).contracts || {};
+            const parsed = JSON.parse(data);
+            const contracts = parsed.contracts || {};
+            // Convert string dates to Date objects
+            Object.values(contracts).forEach((contract) => {
+                if (contract.createdAt && typeof contract.createdAt === 'string') {
+                    contract.createdAt = new Date(contract.createdAt);
+                }
+                if (contract.updatedAt && typeof contract.updatedAt === 'string') {
+                    contract.updatedAt = new Date(contract.updatedAt);
+                }
+            });
+            return contracts;
         }
         catch {
             return {};
@@ -94,7 +116,15 @@ export class KnowledgeBase {
     loadPatterns() {
         try {
             const data = readFileSync(this.patternsPath, 'utf-8');
-            return JSON.parse(data).patterns || {};
+            const parsed = JSON.parse(data);
+            const patterns = parsed.patterns || {};
+            // Convert string dates to Date objects
+            Object.values(patterns).forEach((pattern) => {
+                if (pattern.createdAt && typeof pattern.createdAt === 'string') {
+                    pattern.createdAt = new Date(pattern.createdAt);
+                }
+            });
+            return patterns;
         }
         catch {
             return {};
@@ -143,7 +173,15 @@ export class KnowledgeBase {
     loadDecisions() {
         try {
             const data = readFileSync(this.decisionsPath, 'utf-8');
-            return JSON.parse(data).decisions || [];
+            const parsed = JSON.parse(data);
+            const decisions = parsed.decisions || [];
+            // Convert string dates to Date objects
+            decisions.forEach((decision) => {
+                if (decision.createdAt && typeof decision.createdAt === 'string') {
+                    decision.createdAt = new Date(decision.createdAt);
+                }
+            });
+            return decisions;
         }
         catch {
             return [];
@@ -347,6 +385,19 @@ export class KnowledgeBase {
         return feature;
     }
     /**
+     * Remove uma feature
+     */
+    removeFeature(id) {
+        const data = this.loadFeatures();
+        const initialLength = data.features.length;
+        data.features = data.features.filter(f => f.id !== id);
+        if (data.features.length < initialLength) {
+            this.saveFeatures(data);
+            return true;
+        }
+        return false;
+    }
+    /**
      * Busca contexto completo de uma feature (feature + contratos + padrões relacionados)
      */
     getFeatureContext(featureId) {
@@ -373,7 +424,19 @@ export class KnowledgeBase {
     loadFeatures() {
         try {
             const data = readFileSync(this.featuresPath, 'utf-8');
-            return JSON.parse(data);
+            const parsed = JSON.parse(data);
+            // Convert string dates to Date objects
+            if (parsed.features) {
+                parsed.features.forEach((feature) => {
+                    if (feature.createdAt && typeof feature.createdAt === 'string') {
+                        feature.createdAt = new Date(feature.createdAt);
+                    }
+                    if (feature.updatedAt && typeof feature.updatedAt === 'string') {
+                        feature.updatedAt = new Date(feature.updatedAt);
+                    }
+                });
+            }
+            return parsed;
         }
         catch {
             return { features: [] };
@@ -386,7 +449,18 @@ export class KnowledgeBase {
     loadDocumentation() {
         try {
             const data = readFileSync(this.documentationPath, 'utf-8');
-            return JSON.parse(data).documentation || {};
+            const parsed = JSON.parse(data);
+            const documentation = parsed.documentation || {};
+            // Converter strings de data para Date objects
+            Object.values(documentation).forEach((doc) => {
+                if (doc.createdAt && typeof doc.createdAt === 'string') {
+                    doc.createdAt = new Date(doc.createdAt);
+                }
+                if (doc.lastUpdated && typeof doc.lastUpdated === 'string') {
+                    doc.lastUpdated = new Date(doc.lastUpdated);
+                }
+            });
+            return documentation;
         }
         catch {
             return {};
@@ -516,7 +590,17 @@ export class KnowledgeBase {
             return {};
         }
         const data = readFileSync(this.globalGuidelinesPath, 'utf-8');
-        return JSON.parse(data);
+        const guidelines = JSON.parse(data);
+        // Convert string dates to Date objects
+        Object.values(guidelines).forEach((guideline) => {
+            if (guideline.createdAt && typeof guideline.createdAt === 'string') {
+                guideline.createdAt = new Date(guideline.createdAt);
+            }
+            if (guideline.updatedAt && typeof guideline.updatedAt === 'string') {
+                guideline.updatedAt = new Date(guideline.updatedAt);
+            }
+        });
+        return guidelines;
     }
     saveGlobalGuidelines(guidelines) {
         writeFileSync(this.globalGuidelinesPath, JSON.stringify(guidelines, null, 2));

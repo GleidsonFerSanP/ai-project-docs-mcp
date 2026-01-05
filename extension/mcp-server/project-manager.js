@@ -97,6 +97,16 @@ export class ProjectManager {
         return dirname(this.configPath);
     }
     /**
+     * Retorna o root path de um projeto específico
+     */
+    getProjectRoot(projectId) {
+        const config = this.getProjectConfig(projectId);
+        if (!config || !config.paths || config.paths.length === 0) {
+            return null;
+        }
+        return this.expandEnvVars(config.paths[0]);
+    }
+    /**
      * Detecta projeto baseado no caminho do arquivo
      */
     detectProject(filePath) {
@@ -178,11 +188,23 @@ export class ProjectManager {
             // Criar project-overview.md básico
             const overview = this.generateProjectOverview(projectId, config);
             writeFileSync(join(projectDocsDir, 'project-overview.md'), overview, 'utf-8');
+            // Criar .copilot-instructions.md no root do projeto (primeiro path)
+            // NOTA: Este arquivo é apenas documentação local para a equipe
+            // As instruções reais são carregadas via chatInstructions da extensão
+            if (config.paths && config.paths.length > 0) {
+                const projectRoot = this.expandEnvVars(config.paths[0]);
+                const copilotInstructionsPath = join(projectRoot, '.copilot-instructions.md');
+                // Criar apenas se não existir
+                if (!existsSync(copilotInstructionsPath)) {
+                    const copilotInstructions = this.generateCopilotInstructions(projectId, config);
+                    writeFileSync(copilotInstructionsPath, copilotInstructions, 'utf-8');
+                }
+            }
             // Recarregar config
             this.config = this.loadConfig();
             return {
                 success: true,
-                message: `✅ Projeto '${projectId}' criado com sucesso!\n\nEstrutura criada:\n- docs/${projectId}/\n- knowledge/${projectId}/\n\nArquivos criados:\n- project-overview.md\n- contracts.json\n- patterns.json\n- decisions.json`
+                message: `✅ Projeto '${projectId}' criado com sucesso!\n\nEstrutura criada:\n- docs/${projectId}/\n- knowledge/${projectId}/\n- .copilot-instructions.md (no root do projeto)\n\nArquivos criados:\n- project-overview.md\n- contracts.json\n- patterns.json\n- decisions.json`
             };
         }
         catch (error) {
@@ -268,6 +290,122 @@ projeto/
 **Criado em:** ${new Date().toISOString().split('T')[0]}
 **Projeto ID:** ${projectId}
 `;
+    }
+    /**
+     * Gera .copilot-instructions.md personalizado para o projeto
+     */
+    generateCopilotInstructions(projectId, config) {
+        const stackList = Object.entries(config.stack)
+            .map(([key, value]) => `- **${key}**: ${value}`)
+            .join('\n');
+        const principlesList = config.principles
+            .map(p => `- ${p}`)
+            .join('\n');
+        return `# 🤖 GitHub Copilot Instructions - ${config.name}
+
+> **Este projeto usa Project Docs MCP para gerenciar documentação e contratos**
+
+## 📋 Workflow Obrigatório
+
+### Antes de Qualquer Mudança
+
+1. **Identifique o contexto**: Use MCP tool \`identify_context\` com file_path
+2. **Consulte contratos**: Use MCP tool \`get_contracts\` para o contexto
+3. **Valide código**: Use MCP tool \`validate_contract\` antes de commit
+
+### Antes de Criar Documentação
+
+1. **Verifique duplicação**: Use MCP tool \`check_existing_documentation\`
+2. **Registre metadata**: Use MCP tool \`manage_documentation\` após criar .md
+
+### Ao Fazer Decisões Arquiteturais
+
+1. **Registre decisões**: Use MCP tool \`add_decision\` com contexto e alternativas
+
+## 🛠️ Stack do Projeto
+
+${stackList}
+
+## 🎯 Princípios
+
+${principlesList}
+
+## 🔧 Como Usar o MCP
+
+| Ação | Tool MCP |
+|------|----------|
+| Identificar contexto de arquivo | \`identify_context\` |
+| Listar contratos | \`get_contracts\` |
+| Validar implementação | \`validate_contract\` |
+| Verificar docs existentes | \`check_existing_documentation\` |
+| Registrar padrão | \`learn_pattern\` |
+| Adicionar decisão | \`add_decision\` |
+| Registrar feature | \`register_feature\` |
+
+## 📚 Acesso Rápido ao Contexto
+
+Use o prompt MCP \`project-context\` para obter:
+- Contratos críticos do projeto
+- Padrões aprendidos
+- Decisões arquiteturais
+- Guidelines globais
+
+## 🚫 Regras
+
+- ❌ Nunca criar documentação sem verificar duplicação
+- ❌ Nunca modificar contratos sem validar implementações
+- ❌ Nunca fazer decisões sem registrá-las
+- ✅ Sempre consultar MCP antes de mudanças significativas
+
+---
+**Projeto**: ${projectId} | **MCP**: project-docs
+`;
+    }
+    /**
+     * Gera arquivo .copilot-instructions.md no root do projeto
+     * NOTA: Este arquivo é apenas documentação local para a equipe.
+     * As instruções reais são carregadas automaticamente via chatInstructions da extensão.
+     * @deprecated Use chatInstructions da extensão para instruções automáticas do Copilot
+     */
+    generateCopilotInstructionsFile(projectId, force = false) {
+        const config = this.config.projects[projectId];
+        if (!config) {
+            return {
+                success: false,
+                error: `Projeto '${projectId}' não encontrado`
+            };
+        }
+        if (!config.paths || config.paths.length === 0) {
+            return {
+                success: false,
+                error: `Projeto '${projectId}' não tem paths configurados`
+            };
+        }
+        const projectRoot = this.expandEnvVars(config.paths[0]);
+        const copilotInstructionsPath = join(projectRoot, '.copilot-instructions.md');
+        // Verificar se já existe
+        if (existsSync(copilotInstructionsPath) && !force) {
+            return {
+                success: false,
+                error: 'Arquivo .copilot-instructions.md já existe. Use force: true para sobrescrever.',
+                file_path: copilotInstructionsPath
+            };
+        }
+        try {
+            const content = this.generateCopilotInstructions(projectId, config);
+            writeFileSync(copilotInstructionsPath, content, 'utf-8');
+            return {
+                success: true,
+                message: `✅ Arquivo .copilot-instructions.md criado com sucesso!`,
+                file_path: copilotInstructionsPath
+            };
+        }
+        catch (error) {
+            return {
+                success: false,
+                error: `Erro ao criar arquivo: ${error instanceof Error ? error.message : 'Unknown error'}`
+            };
+        }
     }
     /**
      * Lista todos os projetos

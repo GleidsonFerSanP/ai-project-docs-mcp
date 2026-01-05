@@ -1,0 +1,23 @@
+{
+  "contracts": {
+    "idatamanager": {
+      "name": "IDataManager",
+      "context": "backend",
+      "description": "Interface base para gerenciamento de dados no MCP server",
+      "interfaceCode": "interface IDataManager<T> {\n  load(): Record<string, T>;\n  save(data: Record<string, T>): void;\n  getById(id: string): T | null;\n}",
+      "rules": [
+        "Implementar métodos load() e save()",
+        "Tratar erros de I/O adequadamente",
+        "Usar tipo genérico T para flexibilidade"
+      ],
+      "examples": [
+        "class KnowledgeBase implements IDataManager<Contract> { load() {...} save() {...} }"
+      ],
+      "id": "idatamanager",
+      "createdAt": "2026-01-05T00:28:19.471Z",
+      "updatedAt": "2026-01-05T00:28:19.471Z"
+    }
+  },
+  "lastUpdated": "2026-01-05T00:28:19.471Z",
+  "version": "1.0.0"
+}

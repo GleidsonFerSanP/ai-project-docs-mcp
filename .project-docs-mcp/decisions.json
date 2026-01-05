@@ -1,0 +1,82 @@
+{
+  "decisions": [
+    {
+      "title": "Storage com JSON files",
+      "context": "Escolha de storage para knowledge base",
+      "decision": "Usar JSON files locais em ~/.project-docs-mcp/knowledge",
+      "consequences": {
+        "positive": [
+          "Zero dependências externas",
+          "Portabilidade total",
+          "Human-readable",
+          "Backup simples"
+        ],
+        "negative": [
+          "Sem queries complexas",
+          "Performance degrada com muitos projetos"
+        ]
+      },
+      "alternatives": [
+        "SQLite database",
+        "MongoDB",
+        "JSON files"
+      ],
+      "status": "accepted",
+      "id": "ADR-001",
+      "createdAt": "2026-01-05T00:28:20.804Z"
+    },
+    {
+      "title": "Interface MCP: Botão vs Chat Participant",
+      "context": "GitHub Copilot suporta duas formas de invocar MCPs: via botão MCP na UI ou via chat participants (@-mention). Azure MCP usa participant registration.",
+      "decision": "Por enquanto usar apenas botão MCP, investigar participant registration para versão futura",
+      "consequences": {
+        "positive": [
+          "Implementação mais simples",
+          "Funciona imediatamente após instalação",
+          "Sem necessidade de API adicional do VS Code"
+        ],
+        "negative": [
+          "Usuários precisam clicar no botão MCP",
+          "Sintaxe @project-docs não funciona ainda",
+          "Menos conveniente que Azure MCP"
+        ]
+      },
+      "alternatives": [
+        "Chat participant (@-mention)",
+        "Apenas botão MCP",
+        "Ambos: participant + botão MCP"
+      ],
+      "status": "accepted",
+      "id": "ADR-002",
+      "createdAt": "2026-01-05T00:47:25.213Z"
+    },
+    {
+      "title": "Conversão Explícita de Dates após JSON.parse() em todos os Load Methods",
+      "context": "Bug crítico identificado: JSON.parse() sempre retorna strings para campos Date, causando erro `.getTime() is not a function` quando o código tenta usar métodos de Date. Solução: todos os load methods (loadContracts, loadPatterns, loadDecisions, loadFeatures, loadDocumentation, loadGlobalGuidelines) devem converter explicitamente strings para Date objects após desserialização.",
+      "decision": "Todos os métodos que carregam dados do JSON (load*) devem incluir conversão explícita de campos Date. Pattern:\n```typescript\nconst parsed = JSON.parse(data);\nObject.values(parsed).forEach((item: any) => {\n  if (item.createdAt && typeof item.createdAt === 'string') {\n    item.createdAt = new Date(item.createdAt);\n  }\n  if (item.updatedAt && typeof item.updatedAt === 'string') {\n    item.updatedAt = new Date(item.updatedAt);\n  }\n});\nreturn parsed;\n```\n\nEste pattern foi aplicado em:\n- loadContracts() - createdAt, updatedAt\n- loadPatterns() - createdAt\n- loadDecisions() - createdAt\n- loadFeatures() - createdAt, updatedAt\n- loadDocumentation() - createdAt, lastUpdated\n- loadGlobalGuidelines() - createdAt, updatedAt",
+      "consequences": {
+        "positive": [
+          "Elimina erros de runtime com .getTime() e outros métodos de Date",
+          "Pattern consistente em toda a codebase",
+          "Sem dependências externas",
+          "Type-safe após conversão"
+        ],
+        "negative": [
+          "Código boilerplate em cada load method",
+          "Performance overhead (conversão a cada load)",
+          "Precisa lembrar de adicionar em novos load methods"
+        ]
+      },
+      "alternatives": [
+        "Usar biblioteca como date-fns para serialização customizada",
+        "Criar middleware de serialização/deserialização global",
+        "Usar decorators TypeScript para auto-conversão"
+      ],
+      "status": "accepted",
+      "id": "ADR-003",
+      "createdAt": "2026-01-05T01:01:35.328Z"
+    }
+  ],
+  "lastUpdated": "2026-01-05T01:01:35.328Z",
+  "version": "1.0.0"
+}

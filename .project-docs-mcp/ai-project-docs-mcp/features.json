@@ -1,0 +1,245 @@
+{
+  "features": [
+    {
+      "id": "feat-1767579678864-4si81smgk",
+      "name": "Metadata Versionável no Projeto",
+      "context": "backend",
+      "description": "Sistema de armazenamento de metadata (JSON files) dentro do próprio projeto em .project-docs-mcp/ para serem versionados no git, em vez de ficar apenas em ~/.project-docs-mcp/knowledge/. Permite que todo o conhecimento do projeto (contratos, patterns, decisões, features, documentação) seja versionado junto com o código.",
+      "businessRules": [
+        "Metadata deve ficar em {projectRoot}/.project-docs-mcp/ quando projeto tem projectRoot configurado",
+        "Fallback para ~/.project-docs-mcp/knowledge/{project-id}/ apenas para projeto 'default' ou sem projectRoot",
+        "KnowledgeBase detecta automaticamente o caminho correto baseado no projectId",
+        "Arquivos JSON: contracts.json, patterns.json, decisions.json, features.json, documentation.json",
+        "Tool migrate_metadata_to_project permite migrar dados antigos do global para o projeto"
+      ],
+      "useCases": [
+        {
+          "name": "Versionamento de Conhecimento no Git",
+          "description": "Desenvolvedores querem versionar toda a base de conhecimento do projeto no git",
+          "steps": [
+            "Criar projeto com create_project especificando paths",
+            "MCP automaticamente usa {projectRoot}/.project-docs-mcp/ para armazenar metadata",
+            "git add .project-docs-mcp/",
+            "git commit -m 'docs: add MCP metadata'",
+            "Equipe tem acesso ao conhecimento versionado"
+          ]
+        },
+        {
+          "name": "Migração de Dados Antigos",
+          "description": "Usuário tem metadata antigo em ~/.project-docs-mcp/knowledge/ e quer migrar para o projeto",
+          "steps": [
+            "Chamar migrate_metadata_to_project({ project_id: 'meu-projeto', keep_backup: true })",
+            "MCP copia todos os JSON files para {projectRoot}/.project-docs-mcp/",
+            "MCP mantém backup dos arquivos antigos",
+            "Versionar os novos arquivos no git"
+          ]
+        }
+      ],
+      "relatedContracts": [],
+      "relatedPatterns": [],
+      "dependencies": [
+        "ProjectManager.getProjectRoot()",
+        "KnowledgeBase constructor com path dinâmico",
+        "getProjectContext() em index.ts"
+      ],
+      "apiEndpoints": [
+        {
+          "method": "POST",
+          "path": "/tools/migrate_metadata_to_project",
+          "description": "Migra metadata de ~/.project-docs-mcp/knowledge/ para {projectRoot}/.project-docs-mcp/"
+        }
+      ],
+      "status": "completed",
+      "tags": [
+        "versioning",
+        "git",
+        "metadata",
+        "storage",
+        "migration"
+      ],
+      "notes": "Implementado em v1.2.5. A lógica de detecção automática está em getProjectContext() que tenta primeiro usar projectRoot e faz fallback para global apenas se necessário.",
+      "filePaths": [
+        "src/index.ts linha 1120-1137 (getProjectContext)",
+        "src/project-manager.ts linha 140-148 (getProjectRoot)",
+        "src/index.ts linha 1320-1448 (migrate_metadata_to_project handler)"
+      ],
+      "createdAt": "2026-01-05T02:21:18.864Z",
+      "updatedAt": "2026-01-05T02:21:18.864Z"
+    },
+    {
+      "id": "feat-1767579697209-5uljp43ua",
+      "name": "Gerenciamento Completo de Documentação",
+      "context": "backend",
+      "description": "Sistema completo de gerenciamento de documentação que sincroniza arquivos .md físicos com metadata do MCP. Escaneia docs existentes e registra automaticamente, além de criar arquivos .md com templates quando registrar nova documentação. Evita duplicação detectando docs já existentes antes de criar novos.",
+      "businessRules": [
+        "sync_documentation_files escaneia recursivamente docs/ por arquivos .md",
+        "Auto-detecta contexto do caminho (/backend/, /frontend/, /infrastructure/)",
+        "Auto-detecta tipo do caminho (/architecture/, /api/, /guides/, /troubleshooting/, /setup/)",
+        "Extrai título do primeiro # Header",
+        "Extrai tópicos dos ## Headers",
+        "Analisa frequência de palavras para gerar keywords",
+        "manage_documentation cria arquivo .md automaticamente com template",
+        "Cria diretórios automaticamente se não existirem",
+        "Template inclui metadata, estrutura e referências"
+      ],
+      "useCases": [
+        {
+          "description": "Projeto já tem vários arquivos .md em docs/ mas não estão registrados no MCP",
+          "name": "Sincronizar Docs Existentes",
+          "steps": [
+            "Chamar sync_documentation_files({ project_id: 'meu-projeto', auto_register: true })",
+            "MCP escaneia recursivamente docs/",
+            "Detecta e registra automaticamente todos os .md não registrados",
+            "Extrai título, contexto, tipo, tópicos e keywords automaticamente",
+            "Retorna estatísticas de docs registrados"
+          ]
+        },
+        {
+          "description": "Criar nova documentação com arquivo .md automático",
+          "name": "Criar Doc com Template",
+          "steps": [
+            "Chamar manage_documentation({ action: 'create', title: 'Guia', file_path: 'docs/guides/auth.md', ... })",
+            "MCP verifica duplicação",
+            "Registra metadata em documentation.json",
+            "Cria diretório docs/guides/ se não existir",
+            "Cria auth.md com template estruturado",
+            "Retorna file_created: true"
+          ]
+        },
+        {
+          "description": "Evitar criar documentação duplicada sobre mesmo tema",
+          "name": "Detecção de Duplicação",
+          "steps": [
+            "Tentar criar doc com título similar a existente",
+            "MCP calcula similaridade baseado em título, tópicos e keywords",
+            "Se similaridade >= 50%, bloqueia criação",
+            "Sugere usar action='update' no doc existente",
+            "Permite force_create=true se realmente quiser criar separado"
+          ]
+        }
+      ],
+      "relatedContracts": [],
+      "relatedPatterns": [],
+      "dependencies": [
+        "fs.readdirSync, statSync para escanear diretórios",
+        "KnowledgeBase.registerDocument()",
+        "ProjectManager.getProjectRoot()"
+      ],
+      "apiEndpoints": [
+        {
+          "description": "Escaneia e sincroniza arquivos .md com metadata",
+          "method": "POST",
+          "path": "/tools/sync_documentation_files"
+        },
+        {
+          "description": "Cria documentação com arquivo .md automático",
+          "method": "POST",
+          "path": "/tools/manage_documentation"
+        }
+      ],
+      "status": "completed",
+      "tags": [
+        "documentation",
+        "sync",
+        "auto-generation",
+        "template",
+        "markdown"
+      ],
+      "notes": "Implementado em v1.3.0. Resolve problema de documenta\\u00e7\\u00e3o duplicada e desconectada entre arquivos .md f\\u00edsicos e metadata do MCP.",
+      "filePaths": [
+        "src/index.ts linha 1449-1614 (sync_documentation_files handler)",
+        "src/index.ts linha 1830-1895 (manage_documentation com criação de arquivo)"
+      ],
+      "createdAt": "2026-01-05T02:21:37.209Z",
+      "updatedAt": "2026-01-05T02:21:37.209Z"
+    },
+    {
+      "id": "feat-1767581105749-yunak9x65",
+      "name": "Sincronização Automática de Documentação Existente",
+      "context": "shared",
+      "description": "Sistema de indexação automática que escaneia arquivos Markdown (.md) existentes no projeto e registra automaticamente no metadata do MCP. Detecta documentos não registrados, extrai informações (título, contexto, tipo, tópicos, keywords) e sincroniza com a knowledge base.",
+      "businessRules": [
+        "Escaneia recursivamente o diretório docs/ (ou caminho customizado) buscando arquivos .md",
+        "Pula diretórios ocultos (começam com .) e node_modules",
+        "Extrai título da primeira linha com # do documento",
+        "Infere contexto (backend/frontend/infrastructure/shared/general) baseado no caminho do arquivo",
+        "Infere tipo (architecture/api/guide/troubleshooting/setup/business-flow) baseado no caminho e conteúdo",
+        "Extrai keywords das 500 primeiras palavras (top 10 mais frequentes)",
+        "Extrai tópicos dos headers de nível 2 (##) limitado a 5",
+        "Gera resumo com os primeiros 200 caracteres do conteúdo (excluindo headers)",
+        "Compara com documentos já registrados para evitar duplicação",
+        "Registra automaticamente se auto_register=true (padrão)",
+        "Reporta estatísticas completas: total, já registrados, novos, não registrados",
+        "Gera erros específicos para cada arquivo que falhar no processamento"
+      ],
+      "useCases": [
+        {
+          "description": "Desenvolvedor abre projeto existente pela primeira vez e precisa indexar toda documentação",
+          "name": "Primeira vez no projeto",
+          "steps": [
+            "Abrir projeto no VS Code",
+            "Executar tool sync_documentation_files",
+            "Sistema escaneia docs/ recursivamente",
+            "Registra todos os .md encontrados automaticamente",
+            "Retorna estatísticas de sincronização"
+          ]
+        },
+        {
+          "description": "Desenvolvedores criaram documentos .md manualmente e precisam indexá-los no MCP",
+          "name": "Adicionar novos documentos ao metadata",
+          "steps": [
+            "Criar documentos .md na estrutura docs/ do projeto",
+            "Executar sync_documentation_files com auto_register=true",
+            "Sistema detecta arquivos não registrados",
+            "Extrai metadados automaticamente (título, contexto, keywords, etc)",
+            "Registra no metadata sem duplicação"
+          ]
+        },
+        {
+          "description": "Revisar quais documentos existem mas não estão no metadata",
+          "name": "Verificar documentos não indexados",
+          "steps": [
+            "Executar sync_documentation_files com auto_register=false",
+            "Sistema lista todos os .md não registrados",
+            "Revisar lista e decidir quais indexar",
+            "Re-executar com auto_register=true para registrar"
+          ]
+        }
+      ],
+      "relatedContracts": [],
+      "relatedPatterns": [],
+      "dependencies": [
+        "fs.readdirSync - Leitura recursiva de diretórios",
+        "fs.readFileSync - Leitura de conteúdo dos arquivos .md",
+        "fs.statSync - Verificação de tipo (arquivo/diretório)",
+        "KnowledgeBase.registerDocument - Registro no metadata",
+        "KnowledgeBase.loadDocumentation - Carrega docs existentes para comparação",
+        "ProjectManager.getProjectRoot - Obtem root do projeto para paths relativos"
+      ],
+      "apiEndpoints": [
+        {
+          "description": "Escaneia e sincroniza arquivos .md com metadata. Parâmetros: project_id (opcional), scan_path (padrão: docs/), auto_register (padrão: true)",
+          "method": "MCP Tool",
+          "path": "sync_documentation_files"
+        }
+      ],
+      "status": "completed",
+      "tags": [
+        "documentation",
+        "sync",
+        "indexing",
+        "automation",
+        "markdown",
+        "metadata",
+        "discovery"
+      ],
+      "notes": "Implementado em v1.3.0. A feature extrai metadados automaticamente usando regex e análise de frequência de palavras, tornando desnecessário adicionar frontmatter YAML nos documentos. Suporta scanning em qualquer subdiretório do projeto via parâmetro scan_path.",
+      "filePaths": [
+        "src/index.ts (linhas 384-395, 1409-1575) - Definição e handler da tool sync_documentation_files",
+        "src/knowledge-base.ts - Métodos registerDocument e loadDocumentation"
+      ],
+      "createdAt": "2026-01-05T02:45:05.749Z",
+      "updatedAt": "2026-01-05T02:45:05.749Z"
+    }
+  ]
+}

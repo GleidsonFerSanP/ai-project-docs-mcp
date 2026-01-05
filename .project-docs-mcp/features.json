@@ -1,0 +1,146 @@
+{
+  "features": [
+    {
+      "id": "feat-1767572922392-9tzhwgdd8",
+      "name": "MCP Tools System",
+      "context": "MCP Server Core",
+      "description": "Sistema completo de gerenciamento de documentação via MCP que permite criar, validar e manter documentação de múltiplos projetos de software. Inclui auto-learning de contratos, padrões e decisões arquiteturais.",
+      "businessRules": [
+        "Todas as tools retornam JSON válido",
+        "Erros são retornados com isError: true",
+        "Mensagens de sucesso incluem ícones emoji"
+      ],
+      "useCases": [
+        {
+          "name": "Registrar contrato",
+          "description": "Developer registra uma interface crítica",
+          "steps": [
+            "Chamar register_contract com interface code",
+            "Sistema salva em contracts.json",
+            "Retorna confirmação com reminder"
+          ]
+        }
+      ],
+      "relatedContracts": [],
+      "relatedPatterns": [],
+      "dependencies": [],
+      "apiEndpoints": [],
+      "status": "completed",
+      "tags": [
+        "mcp",
+        "architecture",
+        "core"
+      ],
+      "notes": "Features implementadas:\n- ✅ Criação automática de .copilot-instructions.md no create_project\n- ✅ Duplicate detection (≥50% similarity)\n- ✅ Cross-platform support (Linux/macOS/Windows)\n- ✅ Global guidelines system\n- ✅ MCP prompts (project-context, coding-session)\n- ✅ VS Code extension com auto-configuração\n\nPróximas melhorias:\n- [ ] Auto-criar .copilot-instructions.md quando não existir\n- [ ] Participant registration para sintaxe @project-docs\n- [ ] Bundling da extensão para melhor performance",
+      "filePaths": [
+        "/Users/gleidsonfersanp/workspace/AI/ai-project-docs-mcp/src/index.ts"
+      ],
+      "createdAt": "2026-01-05T00:28:42.392Z",
+      "updatedAt": "2026-01-05T00:47:23.594Z"
+    },
+    {
+      "id": "feat-1767574041562-iit9vnqj2",
+      "name": "Auto-create .copilot-instructions.md",
+      "context": "Documentation",
+      "description": "Feature para criar automaticamente arquivo .copilot-instructions.md quando um projeto é criado, fornecendo guia de uso do MCP para GitHub Copilot",
+      "businessRules": [
+        "Deve criar .copilot-instructions.md durante create_project",
+        "Template deve incluir guia de uso do MCP",
+        "Arquivo deve ser criado no root do projeto",
+        "Deve conter tabela de referência de tools"
+      ],
+      "useCases": [
+        {
+          "description": "Ao criar um novo projeto via create_project, o sistema deve criar .copilot-instructions.md automaticamente",
+          "name": "Auto-create on project creation",
+          "steps": [
+            "User chama create_project",
+            "Sistema cria estrutura de diretórios",
+            "Sistema gera .copilot-instructions.md com template personalizado",
+            "Arquivo inclui nome do projeto e guidelines específicas"
+          ]
+        }
+      ],
+      "relatedContracts": [],
+      "relatedPatterns": [],
+      "dependencies": [],
+      "apiEndpoints": [],
+      "status": "planning",
+      "tags": [
+        "documentation",
+        "automation",
+        "copilot"
+      ],
+      "notes": "",
+      "filePaths": [
+        "/Users/gleidsonfersanp/workspace/AI/ai-project-docs-mcp/src/index.ts"
+      ],
+      "createdAt": "2026-01-05T00:47:21.562Z",
+      "updatedAt": "2026-01-05T00:47:21.562Z"
+    },
+    {
+      "id": "feat-1767574920612-gicuq89au",
+      "name": "Generate Copilot Instructions Tool",
+      "context": "backend",
+      "description": "Tool MCP que permite criar o arquivo .copilot-instructions.md para projetos que já foram criados mas não têm o arquivo de instruções. Resolve problema de projetos legados que precisam das guidelines do MCP.",
+      "businessRules": [
+        "Se o arquivo já existe e force=false, retorna erro",
+        "Se force=true, sobrescreve arquivo existente",
+        "Cria arquivo no root do projeto usando projectRoot do mcp-config.json",
+        "Template inclui documentação de quando usar cada tool do MCP",
+        "Template inclui instruções sobre uso via botão MCP (não @-mention)"
+      ],
+      "useCases": [
+        {
+          "name": "Criar instruções para projeto existente",
+          "description": "Usuário tem projeto criado no MCP mas sem .copilot-instructions.md",
+          "steps": [
+            "Chamar tool generate_copilot_instructions com project_id",
+            "MCP localiza projectRoot via config",
+            "MCP gera template padrão",
+            "Arquivo criado em {projectRoot}/.copilot-instructions.md"
+          ]
+        },
+        {
+          "name": "Forçar recriação de arquivo",
+          "description": "Usuário quer atualizar arquivo existente com novo template",
+          "steps": [
+            "Chamar tool generate_copilot_instructions com force: true",
+            "MCP sobrescreve arquivo existente",
+            "Retorna success: true com mensagem"
+          ]
+        }
+      ],
+      "relatedContracts": [],
+      "relatedPatterns": [],
+      "dependencies": [
+        "ProjectManager.generateCopilotInstructionsFile()",
+        "ProjectManager.getProjectRoot()",
+        "ProjectManager.generateCopilotInstructions()"
+      ],
+      "apiEndpoints": [
+        {
+          "method": "POST",
+          "path": "/tools/generate_copilot_instructions",
+          "description": "Gera .copilot-instructions.md para projetos existentes"
+        }
+      ],
+      "status": "completed",
+      "tags": [
+        "mcp-tool",
+        "documentation",
+        "copilot",
+        "auto-generation"
+      ],
+      "notes": "Criado ap\\u00f3s user request: \"preciso que esse arquivo seja criado para os casos de algu\\u00e9m que j\\u00e1 tenha criado o projeto\". Soluciona problema de projetos migrados ou criados antes da vers\\u00e3o 1.2.4.",
+      "filePaths": [
+        "src/index.ts linha ~365 (tool definition)",
+        "src/index.ts linha ~1260 (handler)",
+        "src/project-manager.ts linha ~490 (generateCopilotInstructionsFile)",
+        "src/project-manager.ts linha ~510 (generateCopilotInstructions)"
+      ],
+      "createdAt": "2026-01-05T01:02:00.612Z",
+      "updatedAt": "2026-01-05T01:02:00.612Z"
+    }
+  ]
+}

@@ -5,6 +5,46 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), 
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.4] - 2025-01-05
+
+### 🐛 Critical Bug Fix - Date Serialization
+
+This release fixes a **critical bug** where Date objects were not being properly converted from JSON strings, causing runtime errors.
+
+### Fixed
+
+* **Date deserialization bug**: All `load*()` methods now properly convert string dates to Date objects after `JSON.parse()`
+* **Runtime error**: Fixed `b.lastUpdated.getTime is not a function` error in `list_documentation` tool
+* **Affected methods**:
+  + `loadContracts()` - createdAt, updatedAt
+  + `loadPatterns()` - createdAt
+  + `loadDecisions()` - createdAt
+  + `loadFeatures()` - createdAt, updatedAt
+  + `loadDocumentation()` - createdAt, lastUpdated
+  + `loadGlobalGuidelines()` - createdAt, updatedAt
+
+### Added
+
+* **New Tool**: `generate_copilot_instructions` - Creates `.copilot-instructions.md` for existing projects
+  + Supports `force: true` to overwrite existing files
+  + Helps migrate legacy projects to use MCP guidelines
+* **Date Conversion Pattern**: Documented pattern for all load methods (ADR-003)
+* **Self-documentation**: Registered Date fix as ADR-003 and new tool as feature in MCP
+
+### Changed
+
+* **JSON Load Pattern**: All load methods now follow consistent pattern:
+  
+
+```typescript
+  const parsed = JSON.parse(data);
+  Object.values(parsed).forEach((item: any) => {
+    if (item.createdAt && typeof item.createdAt === 'string') {
+      item.createdAt = new Date(item.createdAt);
+    }
+  });
+  ```
+
 ## [1.2.0] - 2026-01-04
 
 ### 🔧 Critical Fix - GitHub Copilot Integration

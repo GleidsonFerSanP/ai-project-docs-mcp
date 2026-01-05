@@ -1,0 +1,33 @@
+{
+  "patterns": {
+    "mcp-tool-handler-pattern": {
+      "name": "MCP Tool Handler Pattern",
+      "context": "backend",
+      "description": "Padrão para organizar handlers de tools MCP com tratamento de erros consistente",
+      "pattern": "case 'tool_name': {\n  try {\n    const result = await operation(args);\n    return { content: [{ type: 'text', text: JSON.stringify(result) }] };\n  } catch (error) {\n    return { content: [{ type: 'text', text: JSON.stringify({ error: error.message }) }], isError: true };\n  }\n}",
+      "examples": [
+        "case 'tool_name': {\n  try {\n    const result = operation();\n    return { content: [{ type: 'text', text: JSON.stringify(result) }] };\n  } catch (error) {\n    return { content: [{ type: 'text', text: JSON.stringify({ error }) }], isError: true };\n  }\n}"
+      ],
+      "occurrences": 1,
+      "id": "mcp-tool-handler-pattern",
+      "createdAt": "2026-01-05T00:28:22.395Z"
+    },
+    "date-conversion-after-json-parse-pattern": {
+      "name": "Date Conversion After JSON Parse Pattern",
+      "context": "backend",
+      "description": "Pattern para converter string dates em Date objects após JSON.parse() em métodos de carregamento de dados. Necessário porque JSON desserialização sempre converte Dates para strings, mas os tipos TypeScript esperam Date objects.",
+      "pattern": "```typescript\n// Pattern para load methods com campos Date\nloadData(): DataType {\n  try {\n    const data = readFileSync(this.dataPath, 'utf-8');\n    const parsed = JSON.parse(data);\n    const items = parsed.items || {};\n    \n    // CRITICAL: Convert string dates to Date objects\n    Object.values(items).forEach((item: any) => {\n      if (item.createdAt && typeof item.createdAt === 'string') {\n        item.createdAt = new Date(item.createdAt);\n      }\n      if (item.updatedAt && typeof item.updatedAt === 'string') {\n        item.updatedAt = new Date(item.updatedAt);\n      }\n      if (item.lastUpdated && typeof item.lastUpdated === 'string') {\n        item.lastUpdated = new Date(item.lastUpdated);\n      }\n    });\n    \n    return items;\n  } catch {\n    return {};\n  }\n}\n```\n\n✅ Sempre fazer conversão para campos: createdAt, updatedAt, lastUpdated\n✅ Verificar se é string antes de converter (typeof check)\n✅ Aplicar em TODOS os load methods que têm Date fields",
+      "examples": [
+        "loadDocumentation() em knowledge-base.ts linha 599",
+        "loadContracts() em knowledge-base.ts linha 147",
+        "loadFeatures() em knowledge-base.ts linha 584",
+        "loadGlobalGuidelines() em knowledge-base.ts linha 829"
+      ],
+      "occurrences": 1,
+      "id": "date-conversion-after-json-parse-pattern",
+      "createdAt": "2026-01-05T01:01:46.056Z"
+    }
+  },
+  "lastUpdated": "2026-01-05T01:01:46.056Z",
+  "version": "1.0.0"
+}

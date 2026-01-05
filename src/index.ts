@@ -10,7 +10,7 @@ import {
   ListToolsRequestSchema,
   ReadResourceRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
-import { readFileSync } from 'fs';
+import { readFileSync, existsSync, mkdirSync, writeFileSync, unlinkSync, readdirSync, statSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { KnowledgeBase, Feature, DocumentationEntry } from './knowledge-base.js';
@@ -360,6 +360,45 @@ class ProjectDocsServer {
               },
             },
             required: ['project_id'],
+          },
+        },
+        {
+          name: 'migrate_metadata_to_project',
+          description: 'Migra metadata (JSON files) de ~/.project-docs-mcp/knowledge/{project-id}/ para {projectRoot}/.project-docs-mcp/ para serem versionados no git',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              project_id: {
+                type: 'string',
+                description: 'ID do projeto a migrar',
+              },
+              keep_backup: {
+                type: 'boolean',
+                description: 'Manter backup dos arquivos antigos (padrão: true)',
+              },
+            },
+            required: ['project_id'],
+          },
+        },
+        {
+          name: 'sync_documentation_files',
+          description: 'Escaneia arquivos .md no diretório docs/ do projeto e sincroniza com metadata. Detecta docs não registrados e registra automaticamente.',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              project_id: {
+                type: 'string',
+                description: 'ID do projeto (opcional, usa projeto atual)',
+              },
+              scan_path: {
+                type: 'string',
+                description: 'Caminho relativo para escanear (padrão: docs/)',
+              },
+              auto_register: {
+                type: 'boolean',
+                description: 'Registrar automaticamente docs encontrados (padrão: true)',
+              },
+            },
           },
         },
         {
@@ -817,6 +856,24 @@ class ProjectDocsServer {
           },
         },
         {
+          name: 'remove_feature',
+          description: 'Remove uma feature do projeto',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              project_id: {
+                type: 'string',
+                description: 'ID do projeto (opcional, usa projeto atual)',
+              },
+              feature_id: {
+                type: 'string',
+                description: 'ID da feature a remover',
+              },
+            },
+            required: ['feature_id'],
+          },
+        },
+        {
           name: 'get_feature_context',
           description: 'Busca contexto completo de uma feature, incluindo contratos e padrões relacionados',
           inputSchema: {
@@ -1063,9 +1120,19 @@ class ProjectDocsServer {
         // Default to default if no project found
         if (!projectId) projectId = 'default';
         
-        // ✅ FIX: Usar caminho global do ProjectManager
-        const globalDir = this.projectManager.getGlobalDir();
-        const knowledgeBasePath = join(globalDir, 'knowledge');
+        // ✅ FIXED: Usa diretório do projeto se disponível, senão usa global
+        let knowledgeBasePath: string;
+        const projectRoot = this.projectManager.getProjectRoot(projectId);
+        
+        if (projectRoot) {
+          // Knowledge base DENTRO do projeto (versionável no git)
+          knowledgeBasePath = join(projectRoot, '.project-docs-mcp');
+        } else {
+          // Fallback para global (apenas para projeto 'default')
+          const globalDir = this.projectManager.getGlobalDir();
+          knowledgeBasePath = join(globalDir, 'knowledge', projectId);
+        }
+        
         const kb = new KnowledgeBase(knowledgeBasePath, projectId);
         return { projectId, kb };
       };
@@ -1236,6 +1303,287 @@ class ProjectDocsServer {
                 success: true,
                 message: `✅ Projeto alterado para '${projectId}'`,
                 project: info,
+              }),
+            }],
+          };
+        }
+
+        case 'migrate_metadata_to_project': {
+          const projectId = args?.project_id as string;
+          const keepBackup = args?.keep_backup !== false; // Default true
+
+          if (!projectId) {
+            return {
+              content: [{
+                type: 'text',
+                text: JSON.stringify({ error: 'project_id é obrigatório' }),
+              }],
+            };
+          }
+
+          const projectRoot = this.projectManager.getProjectRoot(projectId);
+          if (!projectRoot) {
+            return {
+              content: [{
+                type: 'text',
+                text: JSON.stringify({
+                  error: `Projeto '${projectId}' não tem projectRoot configurado`,
+                  hint: 'Verifique se o projeto tem paths definidos no mcp-config.json',
+                }),
+              }],
+            };
+          }
+
+          const globalDir = this.projectManager.getGlobalDir();
+          const oldPath = join(globalDir, 'knowledge', projectId);
+          const newPath = join(projectRoot, '.project-docs-mcp');
+
+          // Verificar se diretório antigo existe
+          if (!existsSync(oldPath)) {
+            return {
+              content: [{
+                type: 'text',
+                text: JSON.stringify({
+                  success: false,
+                  message: `Nenhum metadata encontrado em ${oldPath}`,
+                  hint: 'Talvez o projeto já use a nova estrutura ou nunca teve metadata',
+                }),
+              }],
+            };
+          }
+
+          const migratedFiles: string[] = [];
+          const errors: string[] = [];
+
+          try {
+            // Criar diretório de destino
+            if (!existsSync(newPath)) {
+              mkdirSync(newPath, { recursive: true });
+            }
+
+            // Migrar cada JSON file
+            const jsonFiles = ['contracts.json', 'patterns.json', 'decisions.json', 'features.json', 'documentation.json'];
+            
+            for (const fileName of jsonFiles) {
+              const oldFile = join(oldPath, fileName);
+              const newFile = join(newPath, fileName);
+
+              if (existsSync(oldFile)) {
+                try {
+                  const content = readFileSync(oldFile, 'utf-8');
+                  writeFileSync(newFile, content, 'utf-8');
+                  migratedFiles.push(fileName);
+
+                  // Backup opcional
+                  if (keepBackup) {
+                    const backupFile = join(oldPath, `${fileName}.backup`);
+                    writeFileSync(backupFile, content, 'utf-8');
+                  } else {
+                    // Remover arquivo antigo se não quiser backup
+                    unlinkSync(oldFile);
+                  }
+                } catch (err: any) {
+                  errors.push(`${fileName}: ${err.message}`);
+                }
+              }
+            }
+
+            return {
+              content: [{
+                type: 'text',
+                text: JSON.stringify({
+                  success: true,
+                  message: `✅ Migração concluída! ${migratedFiles.length} arquivo(s) migrado(s)`,
+                  project: projectId,
+                  from: oldPath,
+                  to: newPath,
+                  migrated_files: migratedFiles,
+                  errors: errors.length > 0 ? errors : undefined,
+                  backup_kept: keepBackup,
+                  next_steps: [
+                    `Verifique os arquivos em: ${newPath}`,
+                    'Adicione .project-docs-mcp/ ao git: git add .project-docs-mcp/',
+                    'Commit: git commit -m "chore: add MCP metadata to project"',
+                    keepBackup ? `Remova backups depois: rm -rf ${oldPath}/*.backup` : undefined,
+                  ].filter(Boolean),
+                }),
+              }],
+            };
+          } catch (err: any) {
+            return {
+              content: [{
+                type: 'text',
+                text: JSON.stringify({
+                  success: false,
+                  error: 'Erro durante migração',
+                  details: err.message,
+                  migrated_files: migratedFiles,
+                }),
+              }],
+            };
+          }
+        }
+
+        case 'sync_documentation_files': {
+          const providedProjectId = args?.project_id as string;
+          const scanPath = (args?.scan_path as string) || 'docs';
+          const autoRegister = args?.auto_register !== false; // Default true
+
+          const { projectId, kb } = getProjectContext(providedProjectId);
+          const projectRoot = this.projectManager.getProjectRoot(projectId);
+
+          if (!projectRoot) {
+            return {
+              content: [{
+                type: 'text',
+                text: JSON.stringify({
+                  error: `Projeto '${projectId}' não tem projectRoot configurado`,
+                  hint: 'Verifique se o projeto tem paths configurados no mcp-config.json',
+                  project_id: projectId,
+                }),
+              }],
+            };
+          }
+
+          const docsPath = join(projectRoot, scanPath);
+          if (!existsSync(docsPath)) {
+            return {
+              content: [{
+                type: 'text',
+                text: JSON.stringify({
+                  success: false,
+                  message: `Diretório ${docsPath} não existe`,
+                  hint: 'Crie o diretório docs/ ou especifique outro scan_path',
+                  debug: {
+                    project_id: projectId,
+                    project_root: projectRoot,
+                    scan_path: scanPath,
+                    computed_docs_path: docsPath,
+                  },
+                }),
+              }],
+            };
+          }
+
+          // Escanear recursivamente por arquivos .md
+          const findMarkdownFiles = (dir: string, baseDir: string = dir): string[] => {
+            let results: string[] = [];
+            const items = readdirSync(dir);
+
+            for (const item of items) {
+              const fullPath = join(dir, item);
+              const stat = statSync(fullPath);
+
+              if (stat.isDirectory()) {
+                // Pular diretórios ocultos e node_modules
+                if (!item.startsWith('.') && item !== 'node_modules') {
+                  results = results.concat(findMarkdownFiles(fullPath, baseDir));
+                }
+              } else if (item.endsWith('.md')) {
+                // Caminho relativo ao projectRoot
+                const relativePath = fullPath.replace(projectRoot + '/', '');
+                results.push(relativePath);
+              }
+            }
+
+            return results;
+          };
+
+          const markdownFiles = findMarkdownFiles(docsPath);
+          const existingDocs = kb.loadDocumentation();
+          const registeredPaths = new Set(Object.values(existingDocs).map(d => d.filePath));
+          
+          const unregistered: string[] = [];
+          const registered: string[] = [];
+          const errors: string[] = [];
+
+          // Encontrar docs não registrados
+          for (const filePath of markdownFiles) {
+            if (!registeredPaths.has(filePath)) {
+              unregistered.push(filePath);
+
+              if (autoRegister) {
+                try {
+                  // Ler arquivo para extrair informações
+                  const fullPath = join(projectRoot, filePath);
+                  const content = readFileSync(fullPath, 'utf-8');
+                  
+                  // Extrair título da primeira linha # 
+                  const titleMatch = content.match(/^#\s+(.+)$/m);
+                  const title = titleMatch ? titleMatch[1] : filePath.split('/').pop()?.replace('.md', '') || filePath;
+                  
+                  // Inferir contexto do caminho
+                  let context: DocumentationEntry['context'] = 'general';
+                  if (filePath.includes('/backend/')) context = 'backend';
+                  else if (filePath.includes('/frontend/')) context = 'frontend';
+                  else if (filePath.includes('/infrastructure/') || filePath.includes('/infra/')) context = 'infrastructure';
+                  else if (filePath.includes('/_shared/')) context = 'shared';
+                  
+                  // Inferir tipo do caminho
+                  let type: DocumentationEntry['type'] = 'other';
+                  if (filePath.includes('/architecture/') || filePath.includes('ADR-')) type = 'architecture';
+                  else if (filePath.includes('/api/')) type = 'api';
+                  else if (filePath.includes('/guides/') || filePath.includes('/guide/')) type = 'guide';
+                  else if (filePath.includes('/troubleshooting/')) type = 'troubleshooting';
+                  else if (filePath.includes('/setup/')) type = 'setup';
+                  
+                  // Extrair keywords do conteúdo (primeiras 500 palavras)
+                  const words = content.toLowerCase().match(/\b[a-z]{4,}\b/g) || [];
+                  const wordFreq = new Map<string, number>();
+                  words.slice(0, 500).forEach(w => wordFreq.set(w, (wordFreq.get(w) || 0) + 1));
+                  const keywords = Array.from(wordFreq.entries())
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 10)
+                    .map(([word]) => word);
+                  
+                  // Extrair tópicos dos headers ##
+                  const topics = Array.from(content.matchAll(/^##\s+(.+)$/gm))
+                    .map(m => m[1])
+                    .slice(0, 5);
+                  
+                  // Criar resumo (primeiros 200 caracteres)
+                  const summary = content.replace(/^#.+$/gm, '').trim().slice(0, 200) + '...';
+                  
+                  kb.registerDocument({
+                    title,
+                    filePath,
+                    context,
+                    type,
+                    topics: topics.length > 0 ? topics : ['documentation'],
+                    keywords,
+                    summary,
+                  });
+                  
+                  registered.push(filePath);
+                } catch (err: any) {
+                  errors.push(`${filePath}: ${err.message}`);
+                }
+              }
+            }
+          }
+
+          return {
+            content: [{
+              type: 'text',
+              text: JSON.stringify({
+                success: true,
+                message: `📊 Sincronização concluída`,
+                project: projectId,
+                stats: {
+                  total_md_files: markdownFiles.length,
+                  already_registered: markdownFiles.length - unregistered.length,
+                  newly_registered: registered.length,
+                  unregistered: unregistered.length - registered.length,
+                },
+                scan_path: docsPath,
+                newly_registered_files: registered,
+                unregistered_files: autoRegister ? [] : unregistered,
+                errors: errors.length > 0 ? errors : undefined,
+                next_steps: [
+                  registered.length > 0 ? `✅ ${registered.length} documento(s) registrado(s) automaticamente` : undefined,
+                  !autoRegister && unregistered.length > 0 ? `Use auto_register: true para registrar ${unregistered.length} arquivo(s) encontrado(s)` : undefined,
+                  'Use list_documentation para ver todos os docs registrados',
+                ].filter(Boolean),
               }),
             }],
           };
@@ -1461,6 +1809,56 @@ class ProjectDocsServer {
               relatedFeatures,
             });
 
+            // 🆕 Criar arquivo .md automaticamente se não existir
+            const projectRoot = this.projectManager.getProjectRoot(projectId);
+            let fileCreated = false;
+            let fileError: string | undefined;
+            
+            if (projectRoot) {
+              const fullFilePath = join(projectRoot, doc.filePath);
+              
+              if (!existsSync(fullFilePath)) {
+                try {
+                  // Criar diretório se não existir
+                  const fileDir = dirname(fullFilePath);
+                  if (!existsSync(fileDir)) {
+                    mkdirSync(fileDir, { recursive: true });
+                  }
+                  
+                  // Criar template básico do documento
+                  const template = `# ${doc.title}
+
+## Resumo
+
+${summary || 'Descrição do documento.'}
+
+## Contexto
+
+- **Contexto**: ${context}
+- **Tipo**: ${type}
+- **Tópicos**: ${topics.join(', ')}
+
+## Conteúdo
+
+<!-- Adicione o conteúdo principal aqui -->
+
+## Referências
+
+${relatedContracts.length > 0 ? `- Contratos: ${relatedContracts.join(', ')}` : ''}
+${relatedFeatures.length > 0 ? `- Features: ${relatedFeatures.join(', ')}` : ''}
+
+---
+*Documento gerado automaticamente pelo MCP*
+`;
+                  
+                  writeFileSync(fullFilePath, template, 'utf-8');
+                  fileCreated = true;
+                } catch (err: any) {
+                  fileError = err.message;
+                }
+              }
+            }
+
             const response: any = {
               success: true,
               action: 'created',
@@ -1475,12 +1873,23 @@ class ProjectDocsServer {
               },
               auto_check_performed: true,
               similar_docs_found: similarDocs.length,
-              next_steps: [
-                `Crie o arquivo: ${doc.filePath}`,
-                'Use replace_string_in_file ou create_file para criar o conteúdo',
-                'O documento está registrado e será consultável pelo MCP',
-              ],
+              file_created: fileCreated,
+              next_steps: fileCreated 
+                ? [
+                    `✅ Arquivo criado: ${doc.filePath}`,
+                    'Abra o arquivo e adicione o conteúdo detalhado',
+                    'O documento está registrado e será consultável pelo MCP',
+                  ]
+                : [
+                    `Crie o arquivo: ${doc.filePath}`,
+                    'Use replace_string_in_file ou create_file para criar o conteúdo',
+                    'O documento está registrado e será consultável pelo MCP',
+                  ],
             };
+            
+            if (fileError) {
+              response.file_error = `Erro ao criar arquivo: ${fileError}`;
+            }
 
             // Aviso se force_create foi usado
             if (forceCreate && similarDocs.length > 0) {
@@ -1837,6 +2246,42 @@ class ProjectDocsServer {
                   status: feature.status,
                   updatedAt: feature.updatedAt,
                 },
+              }),
+            }],
+          };
+        }
+
+        case 'remove_feature': {
+          const providedProjectId = args?.project_id as string;
+          const featureId = args?.feature_id as string;
+
+          const { projectId, kb } = getProjectContext(providedProjectId);
+          
+          // Buscar feature antes de remover para mostrar o nome
+          const feature = kb.getFeatureById(featureId);
+          const removed = kb.removeFeature(featureId);
+
+          if (!removed) {
+            return {
+              content: [{
+                type: 'text',
+                text: JSON.stringify({
+                  project: projectId,
+                  success: false,
+                  error: `Feature com ID "${featureId}" não encontrada.`,
+                }),
+              }],
+            };
+          }
+
+          return {
+            content: [{
+              type: 'text',
+              text: JSON.stringify({
+                project: projectId,
+                success: true,
+                message: `✅ Feature "${feature?.name || featureId}" removida com sucesso!`,
+                featureId,
               }),
             }],
           };
