@@ -2,7 +2,7 @@
     "name": "project-docs-mcp",
     "displayName": "Project Docs MCP",
     "description": "Universal multi-project documentation system with auto-learning and duplicate prevention for AI assistants",
-    "version": "1.2.1",
+    "version": "1.2.2",
     "publisher": "GleidsonFerSanP",
     "engines": {
         "vscode": "^1.85.0"
