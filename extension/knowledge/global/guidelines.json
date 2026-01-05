@@ -1,0 +1,36 @@
+{
+  "1767572209115": {
+    "id": "1767572209115",
+    "title": "Test Guideline",
+    "category": "architecture",
+    "content": "Test content",
+    "principles": [],
+    "rules": [],
+    "examples": [],
+    "priority": "mandatory",
+    "applyToAllProjects": true,
+    "createdAt": "2026-01-05T00:16:49.115Z",
+    "updatedAt": "2026-01-05T00:16:49.115Z"
+  },
+  "1767572233780": {
+    "id": "1767572233780",
+    "title": "Princípios SOLID",
+    "category": "architecture",
+    "context": "all",
+    "content": "Todos os projetos devem seguir SOLID",
+    "principles": [
+      "Single Responsibility",
+      "Open/Closed"
+    ],
+    "rules": [
+      "Cada classe deve ter apenas uma razão para mudar"
+    ],
+    "examples": [
+      "// SRP: Separar lógica de negócio"
+    ],
+    "priority": "mandatory",
+    "applyToAllProjects": true,
+    "createdAt": "2026-01-05T00:17:13.780Z",
+    "updatedAt": "2026-01-05T00:17:13.780Z"
+  }
+}

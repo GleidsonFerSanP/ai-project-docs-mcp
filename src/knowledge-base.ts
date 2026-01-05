@@ -1,5 +1,5 @@
-import { readFileSync, writeFileSync, readdirSync, statSync } from 'fs';
-import { join, extname } from 'path';
+import { readFileSync, writeFileSync, readdirSync, statSync, existsSync, mkdirSync } from 'fs';
+import { join, extname, dirname } from 'path';
 
 export interface Contract {
   id: string;
@@ -753,12 +753,12 @@ export class KnowledgeBase {
   // ==================== GLOBAL GUIDELINES ====================
 
   private loadGlobalGuidelines(): Record<string, GlobalGuideline> {
-    if (!require('fs').existsSync(this.globalGuidelinesPath)) {
-      const dir = require('path').dirname(this.globalGuidelinesPath);
-      if (!require('fs').existsSync(dir)) {
-        require('fs').mkdirSync(dir, { recursive: true });
+    if (!existsSync(this.globalGuidelinesPath)) {
+      const dir = dirname(this.globalGuidelinesPath);
+      if (!existsSync(dir)) {
+        mkdirSync(dir, { recursive: true });
       }
-      require('fs').writeFileSync(this.globalGuidelinesPath, JSON.stringify({}, null, 2));
+      writeFileSync(this.globalGuidelinesPath, JSON.stringify({}, null, 2));
       return {};
     }
     const data = readFileSync(this.globalGuidelinesPath, 'utf-8');

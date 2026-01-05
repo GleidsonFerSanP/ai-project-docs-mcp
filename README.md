@@ -52,7 +52,7 @@ Manage documentation for multiple projects independently with automatic context 
 
 ### 🌍 Cross-Machine Portability
 
-* Environment variable support (`${HOME}`,   `${USER}`)
+* Environment variable support (`${HOME}`,    `${USER}`)
 * Works seamlessly across macOS, Linux, and Windows
 * Clean separation between framework and user data
 
@@ -65,6 +65,7 @@ One-click installation with automatic MCP configuration.
 ## 🚀 Quick Start
 
 ### Option 1: VS Code Extension (Recommended)
+
 VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=GleidsonFerSanP.project-docs-mcp)
 1. **Install from VS Code Marketplace**
    - Search for "Project Docs MCP" or visit [marketplace link]
