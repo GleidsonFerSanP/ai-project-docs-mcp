@@ -79,11 +79,22 @@ export class ProjectManager {
     }
     /**
      * Expande variáveis de ambiente em um path
+     * Suporta ${HOME} (Linux/macOS), ${USERPROFILE} (Windows), e qualquer outra variável
      */
     expandEnvVars(path) {
         return path.replace(/\$\{(\w+)\}/g, (match, varName) => {
+            // No Windows, ${HOME} deve ser mapeado para USERPROFILE se HOME não existir
+            if (varName === 'HOME' && !process.env.HOME && process.env.USERPROFILE) {
+                return process.env.USERPROFILE;
+            }
             return process.env[varName] || match;
         });
+    }
+    /**
+     * Retorna o diretório global base (~/.project-docs-mcp)
+     */
+    getGlobalDir() {
+        return dirname(this.configPath);
     }
     /**
      * Detecta projeto baseado no caminho do arquivo

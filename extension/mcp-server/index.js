@@ -1010,11 +1010,12 @@ class ProjectDocsServer {
                     if (detected)
                         projectId = detected;
                 }
-                // Default to jarvis if no project found
+                // Default to default if no project found
                 if (!projectId)
-                    projectId = 'jarvis';
-                // ✅ FIX: Passar apenas o base path, não incluir projectId
-                const knowledgeBasePath = join(__dirname, '../knowledge');
+                    projectId = 'default';
+                // ✅ FIX: Usar caminho global do ProjectManager
+                const globalDir = this.projectManager.getGlobalDir();
+                const knowledgeBasePath = join(globalDir, 'knowledge');
                 const kb = new KnowledgeBase(knowledgeBasePath, projectId);
                 return { projectId, kb };
             };

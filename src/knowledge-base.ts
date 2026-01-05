@@ -118,7 +118,21 @@ export class KnowledgeBase {
     this.featuresPath = join(this.projectDir, 'features.json');
     this.documentationPath = join(this.projectDir, 'documentation.json');
     this.globalGuidelinesPath = join(this.globalDir, 'guidelines.json');
-    this.documentationPath = join(this.projectDir, 'documentation.json');
+    
+    // Garantir que diretórios existem
+    this.ensureDirectories();
+  }
+
+  /**
+   * Garante que os diretórios necessários existem
+   */
+  private ensureDirectories(): void {
+    if (!existsSync(this.projectDir)) {
+      mkdirSync(this.projectDir, { recursive: true });
+    }
+    if (!existsSync(this.globalDir)) {
+      mkdirSync(this.globalDir, { recursive: true });
+    }
   }
 
   /**
