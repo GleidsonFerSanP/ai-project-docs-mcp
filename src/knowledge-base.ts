@@ -290,7 +290,7 @@ export class KnowledgeBase {
     return patterns[id];
   }
 
-  getAllPatterns(context?: 'backend' | 'frontend' | 'shared'): Pattern[] {
+  getAllPatterns(context?: 'backend' | 'frontend' | 'shared' | 'infrastructure'): Pattern[] {
     const patterns = this.loadPatterns();
     const all = Object.values(patterns);
 
@@ -1028,6 +1028,64 @@ export class KnowledgeBase {
       global: globalGuidelines,
       projectSpecific: [], // TODO: Implementar guidelines específicas do projeto se necessário
       merged
+    };
+  }
+
+  /**
+   * Valida se implementação ou decisão viola contratos ou guidelines
+   */
+  validateAgainstContracts(
+    code: string,
+    context: 'backend' | 'frontend' | 'infrastructure' | 'shared'
+  ): {
+    valid: boolean;
+    violations: Array<{ type: 'contract' | 'guideline'; name: string; reason: string }>;
+  } {
+    const violations: Array<{ type: 'contract' | 'guideline'; name: string; reason: string }> = [];
+    
+    // Validar contratos
+    const contracts = this.getAllContracts(context);
+    for (const contract of contracts) {
+      // Verificação simples - pode ser expandida
+      if (contract.interfaceCode && !code.includes(contract.name)) {
+        // Se o contrato é crítico e não está sendo usado
+        const isCritical = contract.rules.some(r => 
+          r.toLowerCase().includes('must') || r.toLowerCase().includes('required')
+        );
+        
+        if (isCritical && code.toLowerCase().includes(contract.context)) {
+          violations.push({
+            type: 'contract',
+            name: contract.name,
+            reason: `Contrato crítico '${contract.name}' não está sendo respeitado. Regras: ${contract.rules.join('; ')}`,
+          });
+        }
+      }
+    }
+    
+    // Validar guidelines globais
+    const guidelines = this.getGlobalGuidelines({ context, priority: 'mandatory' });
+    for (const guideline of guidelines) {
+      if (guideline.rules) {
+        for (const rule of guideline.rules) {
+          // Verificações básicas
+          if (rule.toLowerCase().includes('never') || rule.toLowerCase().includes('avoid')) {
+            const forbiddenPattern = rule.match(/never|avoid\s+(\w+)/i);
+            if (forbiddenPattern && code.toLowerCase().includes(forbiddenPattern[1])) {
+              violations.push({
+                type: 'guideline',
+                name: guideline.title,
+                reason: `Guideline violada: ${rule}`,
+              });
+            }
+          }
+        }
+      }
+    }
+    
+    return {
+      valid: violations.length === 0,
+      violations,
     };
   }
 }

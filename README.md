@@ -33,6 +33,16 @@ This MCP server provides persistent memory for your projects, ensuring AI agents
 
 ## ✨ Key Features
 
+### 🎯 Session Focus Management (NEW!)
+
+* **Auto-Refresh Context**: Automatically reloads guidelines every 10 interactions or 30 minutes
+* **Continuous Validation**: Validates code against contracts and guidelines in real-time
+* **Progress Checkpoints**: Save progress and maintain conversation focus
+* **Violation Detection**: Alerts when code violates contracts or guidelines
+* **Session Resume**: Resume previous sessions with full context and history
+
+[📖 Learn more about Session Focus System](docs/_shared/SESSION-FOCUS-SYSTEM.md)
+
 ### 📚 Multi-Project Support
 
 Manage documentation for multiple projects independently with automatic context detection.
@@ -52,7 +62,7 @@ Manage documentation for multiple projects independently with automatic context 
 
 ### 🌍 Cross-Machine Portability
 
-* Environment variable support (`${HOME}`,    `${USER}`)
+* Environment variable support (`${HOME}`,     `${USER}`)
 * Works seamlessly across macOS, Linux, and Windows
 * Clean separation between framework and user data
 

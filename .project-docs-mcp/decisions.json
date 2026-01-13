@@ -75,8 +75,93 @@
       "status": "accepted",
       "id": "ADR-003",
       "createdAt": "2026-01-05T01:01:35.328Z"
+    },
+    {
+      "title": "Registro de MCP via VS Code Extension API",
+      "context": "Decisão sobre como distribuir e registrar o MCP Server no VS Code. Usuários tinham dificuldade com paths absolutos quebrando ao mover pastas e configuração manual ser propensa a erros.",
+      "decision": "Adotar registro de MCP via extensão do VS Code usando vscode.lm.registerMcpServerDefinitionProvider ao invés de configuração manual em mcpServers.json. O MCP Server é empacotado junto com a extensão e o path é gerenciado automaticamente via context.extensionPath.",
+      "consequences": {
+        "positive": [
+          "Zero configuração - usuário só instala extensão",
+          "Path sempre correto (relativo à extensão)",
+          "Portável - funciona em qualquer máquina sem reconfiguração",
+          "Atualizável via Marketplace",
+          "Logging integrado ao VS Code Output",
+          "Processo MCP isolado e gerenciado pelo VS Code"
+        ],
+        "negative": [
+          "MCP não aparece na lista 'MCP Servers Installed' do Copilot (pode confundir usuários)",
+          "Mais complexo de debugar (precisa usar Output Channel)",
+          "Requer entendimento da VS Code Extension API"
+        ]
+      },
+      "alternatives": [
+        "Modo Manual: usuário edita mcpServers.json manualmente",
+        "Modo Extensão: registro programático via API (escolhido)",
+        "Hybrid: suportar ambos os modos"
+      ],
+      "status": "accepted",
+      "id": "ADR-004",
+      "createdAt": "2026-01-13T01:21:26.869Z"
+    },
+    {
+      "title": "Rebranding: project-docs-mcp → ai-project-context",
+      "context": "Com a adição de session focus management e integração profunda com GitHub Copilot, o nome 'project-docs-mcp' estava muito limitado. O MCP agora fornece muito mais que documentação - fornece contexto completo, foco conversacional, validação de contratos e guidelines.",
+      "decision": "Renomear extensão de 'project-docs-mcp' para 'ai-project-context' na versão 1.4.0, refletindo melhor o propósito de fornecer contexto completo para AI agents. Atualizar sistematicamente: package name, display name, MCP ID, comandos, configurações, README e @mentions.",
+      "consequences": {
+        "positive": [
+          "Nome reflete melhor funcionalidade real",
+          "Mais claro para novos usuários o que a extensão faz",
+          "Alinhado com evolução do produto (session focus, Copilot integration)",
+          "MCP ID mais descritivo (@ai-project-context)",
+          "Posicionamento melhor no Marketplace"
+        ],
+        "negative": [
+          "Usuários existentes precisam desinstalar versão antiga",
+          "Possível confusão inicial sobre novo nome",
+          "Documentação externa com nome antigo fica desatualizada",
+          "Cache do VS Code pode manter referências antigas"
+        ]
+      },
+      "alternatives": [
+        "Manter nome 'project-docs-mcp' (foco em documentação)",
+        "Renomear para 'ai-project-context' (foco em contexto para AI) - escolhido",
+        "Renomear para 'ai-project-assistant'"
+      ],
+      "status": "accepted",
+      "id": "ADR-005",
+      "createdAt": "2026-01-13T01:21:27.898Z"
+    },
+    {
+      "title": "Sistema de Logging via VS Code OutputChannel",
+      "context": "Durante debugging da extensão, faltava visibilidade sobre o que estava acontecendo durante ativação e registro do MCP. console.log ia para Developer Tools, difícil de categorizar e filtrar. Inspiração veio do MCP Image Reader que usa OutputChannel.",
+      "decision": "Implementar sistema de logging categorizado usando VS Code LogOutputChannel API com 5 níveis (info, warning, error, debug, success), timestamps automáticos, emojis visuais e painel dedicado 'AI Project Context' acessível via Cmd+Shift+U.",
+      "consequences": {
+        "positive": [
+          "Diagnóstico muito mais fácil de problemas",
+          "Categorização automática por nível",
+          "Integrado nativamente ao VS Code",
+          "Timestamps precisos em todas as mensagens",
+          "Visual limpo com emojis indicadores",
+          "Não polui Developer Tools",
+          "Padrão consistente com outras extensões de qualidade"
+        ],
+        "negative": [
+          "Adiciona pequena overhead ao código",
+          "Usuários precisam saber onde encontrar logs (Output panel)",
+          "Logs não persistem entre sessões do VS Code"
+        ]
+      },
+      "alternatives": [
+        "Usar console.log tradicional",
+        "Implementar logger customizado com arquivo",
+        "Usar VS Code OutputChannel (escolhido)"
+      ],
+      "status": "accepted",
+      "id": "ADR-006",
+      "createdAt": "2026-01-13T01:21:29.189Z"
     }
   ],
-  "lastUpdated": "2026-01-05T01:01:35.328Z",
+  "lastUpdated": "2026-01-13T01:21:29.189Z",
   "version": "1.0.0"
 }

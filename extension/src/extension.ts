@@ -2,20 +2,56 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 
+// Output channel para logs categorizados
+let outputChannel: vscode.OutputChannel;
+
+function log(message: string, level: 'info' | 'warn' | 'error' = 'info') {
+    const timestamp = new Date().toISOString();
+    const prefix = level === 'error' ? '❌' : level === 'warn' ? '⚠️' : 'ℹ️';
+    const logMessage = `[${timestamp}] ${prefix} ${message}`;
+    
+    outputChannel.appendLine(logMessage);
+    
+    // Também logar no console para debug
+    if (level === 'error') {
+        console.error(logMessage);
+    } else if (level === 'warn') {
+        console.warn(logMessage);
+    } else {
+        console.log(logMessage);
+    }
+}
+
 export function activate(context: vscode.ExtensionContext) {
-    console.log('Project Docs MCP extension is now active!');
+    // Criar output channel categorizado
+    outputChannel = vscode.window.createOutputChannel('AI Project Context', { log: true });
+    context.subscriptions.push(outputChannel);
+    
+    log('AI Project Context extension is now active!');
+    log(`Extension path: ${context.extensionPath}`);
 
     // Garantir que estrutura global existe
     ensureGlobalStructure();
 
     // Registrar MCP Server Definition Provider (API moderna do VS Code)
+    log('Registering MCP Server Definition Provider...');
+    const mcpServerPath = path.join(context.extensionPath, 'mcp-server', 'index.js');
+    log(`MCP Server path: ${mcpServerPath}`);
+    
+    // Verificar se arquivo existe
+    if (!fs.existsSync(mcpServerPath)) {
+        log(`MCP Server file not found at: ${mcpServerPath}`, 'error');
+    } else {
+        log('MCP Server file found successfully');
+    }
+    
     context.subscriptions.push(
-        vscode.lm.registerMcpServerDefinitionProvider('project-docs', {
+        vscode.lm.registerMcpServerDefinitionProvider('ai-project-context', {
             provideMcpServerDefinitions() {
-                const mcpServerPath = path.join(context.extensionPath, 'mcp-server', 'index.js');
+                log('Providing MCP Server definitions...');
                 return [
                     new vscode.McpStdioServerDefinition(
-                        'project-docs',
+                        'ai-project-context',
                         'node',
                         [mcpServerPath]
                     )
@@ -23,9 +59,10 @@ export function activate(context: vscode.ExtensionContext) {
             }
         })
     );
+    log('MCP Server Definition Provider registered successfully');
 
     // Configurar MCP automaticamente ao ativar (fallback para versões antigas)
-    const config = vscode.workspace.getConfiguration('projectDocsMcp');
+    const config = vscode.workspace.getConfiguration('aiProjectContext');
     const autoStart = config.get<boolean>('autoStart', true);
 
     if (autoStart) {
@@ -33,19 +70,21 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     // Command: Configure MCP
-    const configureCmd = vscode.commands.registerCommand('project-docs-mcp.configure', () => {
+    const configureCmd = vscode.commands.registerCommand('ai-project-context.configure', () => {
+        log('Command: Configure MCP');
         configureMCP(context);
-        vscode.window.showInformationMessage('Project Docs MCP configured successfully!');
+        vscode.window.showInformationMessage('AI Project Context configured successfully!');
     });
 
     // Command: Restart MCP Server
-    const restartCmd = vscode.commands.registerCommand('project-docs-mcp.restart', () => {
+    const restartCmd = vscode.commands.registerCommand('ai-project-context.restart', () => {
+        log('Command: Restart MCP Server');
         vscode.window.showInformationMessage('Restarting MCP server... Please reload VS Code.');
         vscode.commands.executeCommand('workbench.action.reloadWindow');
     });
 
     // Command: Open Documentation
-    const viewDocsCmd = vscode.commands.registerCommand('project-docs-mcp.viewDocs', () => {
+    const viewDocsCmd = vscode.commands.registerCommand('ai-project-context.viewDocs', () => {
         // Abrir README no GitHub
         vscode.env.openExternal(vscode.Uri.parse('https://github.com/GleidsonFerSanP/ai-project-docs-mcp#readme'));
     });
@@ -54,21 +93,23 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Mostrar mensagem de boas-vindas
     vscode.window.showInformationMessage(
-        'Project Docs MCP is ready! Use @project-docs in Copilot Chat.',
+        'AI Project Context is ready! Use @ai-project-context in Copilot Chat.',
         'Open Docs'
     ).then(selection => {
         if (selection === 'Open Docs') {
-            vscode.commands.executeCommand('project-docs-mcp.viewDocs');
+            vscode.commands.executeCommand('ai-project-context.viewDocs');
         }
     });
 }
 
 function ensureGlobalStructure() {
+    log('Ensuring global structure exists...');
     const homeDir = process.env.HOME || process.env.USERPROFILE;
     if (!homeDir) {
-        console.error('Could not determine home directory');
+        log('Could not determine home directory', 'error');
         return;
     }
+    log(`Home directory: ${homeDir}`);
 
     const globalDir = path.join(homeDir, '.project-docs-mcp');
     const configPath = path.join(globalDir, 'mcp-config.json');
@@ -79,7 +120,9 @@ function ensureGlobalStructure() {
     [globalDir, knowledgeDir, docsDir].forEach(dir => {
         if (!fs.existsSync(dir)) {
             fs.mkdirSync(dir, { recursive: true });
-            console.log(`Created directory: ${dir}`);
+            log(`Created directory: ${dir}`);
+        } else {
+            log(`Directory already exists: ${dir}`);
         }
     });
 

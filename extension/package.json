@@ -1,8 +1,8 @@
 {
-    "name": "project-docs-mcp",
-    "displayName": "Project Docs MCP",
-    "description": "Universal multi-project documentation system with auto-learning and duplicate prevention for AI assistants",
-    "version": "1.3.6",
+    "name": "ai-project-context",
+    "displayName": "AI Project Context",
+    "description": "Intelligent context management for AI assistants - Session focus tracking, contracts, guidelines, and project memory",
+    "version": "1.4.0",
     "publisher": "GleidsonFerSanP",
     "engines": {
         "vscode": "^1.85.0"
@@ -30,25 +30,25 @@
     "contributes": {
         "mcpServerDefinitionProviders": [
             {
-                "id": "project-docs",
-                "label": "Project Docs"
+                "id": "ai-project-context",
+                "label": "AI Project Context"
             }
         ],
         "commands": [
             {
-                "command": "project-docs-mcp.configure",
-                "title": "Configure Project Docs MCP",
-                "category": "Project Docs"
+                "command": "ai-project-context.configure",
+                "title": "Configure AI Project Context",
+                "category": "AI Project Context"
             },
             {
-                "command": "project-docs-mcp.restart",
+                "command": "ai-project-context.restart",
                 "title": "Restart MCP Server",
-                "category": "Project Docs"
+                "category": "AI Project Context"
             },
             {
-                "command": "project-docs-mcp.viewDocs",
+                "command": "ai-project-context.viewDocs",
                 "title": "Open Documentation",
-                "category": "Project Docs"
+                "category": "AI Project Context"
             }
         ],
         "chatInstructions": [
@@ -56,17 +56,22 @@
                 "name": "ProjectDocsMCPGuidelines",
                 "description": "Project documentation, architecture decisions, contracts, patterns, and features management guidelines",
                 "path": "resources/instructions/project-docs.instructions.md"
+            },
+            {
+                "name": "GitHubCopilotProjectContextIntegration",
+                "description": "**CRITICAL**: Read this file at the START of EVERY conversation with GitHub Copilot. This file provides essential instructions for maintaining project context and conversational focus using the Project Docs MCP. **MUST** be loaded FIRST before any coding work to ensure proper context awareness and focus maintenance.",
+                "path": "resources/instructions/github-copilot.instructions.md"
             }
         ],
         "configuration": {
-            "title": "Project Docs MCP",
+            "title": "AI Project Context",
             "properties": {
-                "projectDocsMcp.autoStart": {
+                "aiProjectContext.autoStart": {
                     "type": "boolean",
                     "default": true,
                     "description": "Automatically start MCP server on VS Code startup"
                 },
-                "projectDocsMcp.logLevel": {
+                "aiProjectContext.logLevel": {
                     "type": "string",
                     "enum": [
                         "error",
@@ -77,9 +82,9 @@
                     "default": "info",
                     "description": "Log level for MCP server"
                 },
-                "projectDocsMcp.defaultProject": {
+                "aiProjectContext.defaultProject": {
                     "type": "string",
-                    "default": "jarvis",
+                    "default": "default",
                     "description": "Default project to use when none is detected"
                 }
             }

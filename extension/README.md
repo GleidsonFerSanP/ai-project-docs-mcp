@@ -1,8 +1,8 @@
-# Project Docs MCP - VS Code Extension
+# AI Project Context - VS Code Extension
 
-> **Universal Multi-Project Documentation System for GitHub Copilot and AI Assistants**
+> **Intelligent Context Management for AI Assistants**
 
-Intelligent documentation management with auto-learning, duplicate prevention, and persistent memory for your projects.
+Keep AI agents focused, contextualized, and compliant with your project's architecture through session tracking, contract validation, and intelligent memory.
 
 ## 🚀 Quick Start
 
@@ -10,29 +10,37 @@ Intelligent documentation management with auto-learning, duplicate prevention, a
 
 **From Marketplace** (Recommended):
 1. Open VS Code
-2. Search for "Project Docs MCP"
+2. Search for "AI Project Context"
 3. Click "Install"
 4. Done! Extension auto-configures everything
 
 **From VSIX** (Local):
 
 ```bash
-code --install-extension project-docs-mcp-1.0.1.vsix
+code --install-extension ai-project-context-1.4.0.vsix
 ```
 
 ### First Use
 
 1. Open GitHub Copilot Chat
-2. Type `@project-docs` to see available commands
-3. Start with: `@project-docs list_projects`
+2. Type `@ai-project-context` to see available commands
+3. Start with: `@ai-project-context list_projects`
 
 ## ✨ Key Features
 
 ### 🤖 Seamless Copilot Integration
 
 * ✅ **Auto-configuration** on install
-* ✅ **`@project-docs`** in Copilot Chat
+* ✅ **`@ai-project-context`** in Copilot Chat
 * ✅ **Zero manual setup** required
+
+### 🎯 Conversational Focus Maintenance (NEW in v1.4.0)
+
+* ✅ **Session tracking** - Never lose context in long conversations
+* ✅ **Focus management** - Keep AI agents on track with clear objectives
+* ✅ **Auto-refresh** - Context reload every 10 turns or 30 minutes
+* ✅ **Progress checkpoints** - Track what's been done and what's next
+* ✅ **Violation detection** - Automatic validation against contracts and guidelines
 
 ### 🔍 Intelligent Documentation
 
@@ -54,12 +62,18 @@ code --install-extension project-docs-mcp-1.0.1.vsix
 * ✅ **Works anywhere** - Mac, Linux, Windows
 * ✅ **Shareable** knowledge base
 
+### 📊 Categorized Logging
+
+* ✅ **Output channel** - "AI Project Context" in VS Code Output panel
+* ✅ **Timestamp logs** - Track all MCP operations
+* ✅ **Error tracking** - Detailed error messages with context
+
 ## 🎯 Usage Examples
 
 ### Create Your First Project
 
 ```typescript
-@project-docs create_project {
+@ai-project-context create_project {
   "project_id": "my-app",
   "name": "My Application",
   "description": "Full-stack web application",
@@ -76,7 +90,7 @@ code --install-extension project-docs-mcp-1.0.1.vsix
 ### Register a Critical Contract
 
 ```typescript
-@project-docs register_contract {
+@ai-project-context register_contract {
   "project_id": "my-app",
   "name": "IUserRepository",
   "context": "backend",
@@ -92,7 +106,7 @@ code --install-extension project-docs-mcp-1.0.1.vsix
 ### Check for Duplicate Documentation
 
 ```typescript
-@project-docs check_existing_documentation {
+@ai-project-context check_existing_documentation {
   "project_id": "my-app",
   "title": "Authentication System",
   "topics": ["auth", "jwt", "security"]
@@ -103,7 +117,7 @@ code --install-extension project-docs-mcp-1.0.1.vsix
 ### Add Documentation (Auto-Dedup)
 
 ```typescript
-@project-docs manage_documentation {
+@ai-project-context manage_documentation {
   "project_id": "my-app",
   "action": "create",
   "title": "API Authentication",
@@ -146,6 +160,18 @@ code --install-extension project-docs-mcp-1.0.1.vsix
 * `get_feature_context` - Get full feature context
 * `update_feature` - Update feature status
 
+### Session Management (NEW in v1.4.0)
+
+* `start_session` - Start new session with focus tracking
+* `get_current_focus` - Get active session state (use at conversation start!)
+* `update_focus` - Update session focus when direction changes
+* `resume_session` - Reactivate paused session
+* `refresh_session_context` - Reload guidelines and contracts (every 10 turns)
+* `validate_conversation_focus` - Validate alignment with contracts and focus
+* `create_checkpoint` - Document progress and next steps
+* `complete_session` - Mark session as finished
+* `list_active_sessions` - List all active sessions
+
 ### Decisions & Guidelines
 
 * `add_decision` - Record architectural decision (ADR)
@@ -181,6 +207,32 @@ The extension auto-configures, but you can customize:
 
 ## 🎓 Use Cases
 
+### ✅ Maintain Conversational Focus (NEW!)
+
+```typescript
+// Start focused session
+@ai-project-context start_session {
+  "context": "backend",
+  "current_focus": "Implement JWT authentication with refresh tokens"
+}
+
+// Check current state
+@ai-project-context get_current_focus {}
+
+// Update focus when direction changes
+@ai-project-context update_focus {
+  "new_focus": "Add email verification to registration flow",
+  "reason": "User requested additional security"
+}
+
+// Create checkpoint after completing subtask
+@ai-project-context create_checkpoint {
+  "summary": "JWT service implemented with IAuthService contract",
+  "next_focus": "Add unit tests for token validation",
+  "files_modified": ["src/auth/jwt.service.ts"]
+}
+```
+
 ### ✅ Prevent Contract Violations
 
 Register `IUserService` once → AI never violates it again
@@ -200,6 +252,21 @@ New AI agent? Scan project → Instant knowledge of contracts and patterns
 ### ✅ Preserve Decisions
 
 Document PostgreSQL choice → AI never suggests MongoDB again
+
+## 🔍 View Logs
+
+Want to see what's happening under the hood?
+
+1. Open **Output** panel: `Cmd+Shift+U` (Mac) or `Ctrl+Shift+U` (Windows/Linux)
+2. Select **"Project Docs MCP"** from the dropdown
+3. See categorized logs with timestamps:
+   
+
+```
+   [2026-01-12T21:45:00.000Z] ℹ️ Project Docs MCP extension is now active!
+   [2026-01-12T21:45:00.001Z] ℹ️ MCP Server file found successfully
+   [2026-01-12T21:45:00.002Z] ℹ️ MCP Server Definition Provider registered successfully
+   ```
 
 ## 📚 Documentation
 
@@ -222,7 +289,7 @@ Reinstall the extension - v1.0.1+ includes the MCP server bundled.
 
 ### Commands not working
 
-1. Run: `@project-docs list_projects` to test connection
+1. Run: `@ai-project-context list_projects` to test connection
 2. Check MCP config file exists
 3. Verify extension is activated (check Extensions panel)
 

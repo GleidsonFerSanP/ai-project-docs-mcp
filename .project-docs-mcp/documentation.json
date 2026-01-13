@@ -1,0 +1,147 @@
+{
+  "documentation": {
+    "sistema-de-foco-conversacional-session-focus-system": {
+      "title": "Sistema de Foco Conversacional (Session Focus System)",
+      "filePath": "docs/features/SESSION-FOCUS-SYSTEM.md",
+      "topics": [
+        "Session Management",
+        "Focus Tracking",
+        "Context Refresh",
+        "Checkpoint System",
+        "MCP Tools"
+      ],
+      "keywords": [
+        "session",
+        "focus",
+        "checkpoint",
+        "context",
+        "conversation tracking",
+        "AI agent",
+        "update_focus",
+        "get_current_focus",
+        "resume_session"
+      ],
+      "summary": "Sistema completo de gerenciamento de foco conversacional para AI agents, incluindo novas ferramentas (update_focus, get_current_focus, resume_session) que permitem manter o contexto e objetivo da conversa ao longo de múltiplas interações.",
+      "context": "infrastructure",
+      "type": "architecture",
+      "relatedContracts": [],
+      "relatedFeatures": [],
+      "id": "sistema-de-foco-conversacional-session-focus-system",
+      "createdAt": "2026-01-13T01:18:57.012Z",
+      "lastUpdated": "2026-01-13T01:18:57.012Z",
+      "version": 1
+    },
+    "integra-o-com-github-copilot": {
+      "title": "Integração com GitHub Copilot",
+      "filePath": "docs/features/GITHUB-COPILOT-INTEGRATION.md",
+      "topics": [
+        "GitHub Copilot Integration",
+        "Chat Instructions",
+        "Context Awareness",
+        "Workflow Automation"
+      ],
+      "keywords": [
+        "github copilot",
+        "chatInstruction",
+        "copilot-instructions",
+        "AI context",
+        "guidelines",
+        "contracts",
+        "session focus"
+      ],
+      "summary": "Arquivo de instruções completo para GitHub Copilot (.github/copilot-instructions.md) que garante que o AI agent sempre mantenha contexto do projeto, siga guidelines, valide contratos e mantenha foco conversacional. Integração via chatInstruction no package.json da extensão.",
+      "context": "infrastructure",
+      "type": "guide",
+      "relatedContracts": [],
+      "relatedFeatures": [],
+      "id": "integra-o-com-github-copilot",
+      "createdAt": "2026-01-13T01:18:58.064Z",
+      "lastUpdated": "2026-01-13T01:18:58.064Z",
+      "version": 1
+    },
+    "renomea-o-da-extens-o-project-docs-mcp-ai-project-context": {
+      "title": "Renomeação da Extensão: project-docs-mcp → ai-project-context",
+      "filePath": "docs/features/EXTENSION-REBRANDING.md",
+      "topics": [
+        "Extension Rebranding",
+        "Version 1.4.0",
+        "Package Configuration",
+        "MCP Registration"
+      ],
+      "keywords": [
+        "rebranding",
+        "renaming",
+        "ai-project-context",
+        "project-docs-mcp",
+        "extension name",
+        "MCP ID"
+      ],
+      "summary": "Processo completo de renomeação da extensão de 'project-docs-mcp' para 'ai-project-context', incluindo atualização de package.json, extension.ts, README.md, comandos, configurações e MCP ID. Atualização para versão 1.4.0.",
+      "context": "infrastructure",
+      "type": "architecture",
+      "relatedContracts": [],
+      "relatedFeatures": [],
+      "id": "renomea-o-da-extens-o-project-docs-mcp-ai-project-context",
+      "createdAt": "2026-01-13T01:18:59.043Z",
+      "lastUpdated": "2026-01-13T01:18:59.043Z",
+      "version": 1
+    },
+    "sistema-de-logging-categorizado-outputchannel": {
+      "title": "Sistema de Logging Categorizado (OutputChannel)",
+      "filePath": "docs/features/CATEGORIZED-LOGGING.md",
+      "topics": [
+        "Logging System",
+        "Diagnostics",
+        "Output Channel",
+        "VS Code API"
+      ],
+      "keywords": [
+        "logging",
+        "OutputChannel",
+        "debug",
+        "vscode",
+        "categorized logs",
+        "diagnostics"
+      ],
+      "summary": "Sistema de logging categorizado usando VS Code OutputChannel API com níveis (info, warning, error, debug, success), timestamps automáticos e painel dedicado 'AI Project Context' no Output. Inspirado no MCP Image Reader.",
+      "context": "infrastructure",
+      "type": "architecture",
+      "relatedContracts": [],
+      "relatedFeatures": [],
+      "id": "sistema-de-logging-categorizado-outputchannel",
+      "createdAt": "2026-01-13T01:18:59.999Z",
+      "lastUpdated": "2026-01-13T01:18:59.999Z",
+      "version": 1
+    },
+    "arquitetura-mcp-via-vs-code-extension": {
+      "title": "Arquitetura MCP via VS Code Extension",
+      "filePath": "docs/architecture/MCP-EXTENSION-ARCHITECTURE.md",
+      "topics": [
+        "MCP Protocol",
+        "Extension Architecture",
+        "VS Code Integration",
+        "Process Communication"
+      ],
+      "keywords": [
+        "MCP",
+        "Model Context Protocol",
+        "JSON-RPC",
+        "stdio",
+        "vscode extension",
+        "McpStdioServerDefinition",
+        "mcpServerDefinitionProviders"
+      ],
+      "summary": "Documentação completa da arquitetura de integração MCP via extensão do VS Code, explicando o uso do protocolo MCP (JSON-RPC 2.0), comunicação stdio, registro programático via vscode.lm.registerMcpServerDefinitionProvider, e diferenças entre modo manual e modo extensão.",
+      "context": "infrastructure",
+      "type": "architecture",
+      "relatedContracts": [],
+      "relatedFeatures": [],
+      "id": "arquitetura-mcp-via-vs-code-extension",
+      "createdAt": "2026-01-13T01:19:01.346Z",
+      "lastUpdated": "2026-01-13T01:19:01.346Z",
+      "version": 1
+    }
+  },
+  "lastUpdated": "2026-01-13T01:19:01.346Z",
+  "version": "1.0.0"
+}

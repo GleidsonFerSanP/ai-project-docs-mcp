@@ -7,6 +7,7 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { KnowledgeBase } from './knowledge-base.js';
 import { ProjectManager } from './project-manager.js';
+import { SessionManager } from './session-manager.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 class ProjectDocsServer {
@@ -139,6 +140,17 @@ class ProjectDocsServer {
                             },
                         ],
                     },
+                    {
+                        name: 'session-resume',
+                        description: 'Retoma uma sessão anterior com todo o contexto e histórico',
+                        arguments: [
+                            {
+                                name: 'session_id',
+                                description: 'ID da sessão a retomar',
+                                required: true,
+                            },
+                        ],
+                    },
                 ],
             };
         });
@@ -210,7 +222,7 @@ class ProjectDocsServer {
                 }
                 const projectId = this.projectManager.getCurrentProject();
                 const config = projectId ? this.projectManager.getProjectConfig(projectId) : null;
-                let prompt = `# Iniciando Sessão de Desenvolvimento - ${context}\n\n`;
+                let prompt = `# 🎯 Iniciando Sessão de Desenvolvimento - ${context}\n\n`;
                 if (config) {
                     prompt += `## Projeto: ${config.name}\n\n`;
                     prompt += `### Stack (${context})\n`;
@@ -222,9 +234,98 @@ class ProjectDocsServer {
                     }
                     prompt += `\n### Princípios\n${config.principles.map((p) => `- ${p}`).join('\n')}\n\n`;
                 }
-                prompt += `\n**IMPORTANTE:** Mantenha essas guidelines em mente durante toda a conversa. `;
-                prompt += `Valide implementações contra contratos registrados usando get_contracts. `;
-                prompt += `Use identify_context para entender melhor o arquivo atual.`;
+                prompt += `\n## ⚡ SISTEMA DE MANUTENÇÃO DE FOCO - INSTRUÇÕES CRÍTICAS\n\n`;
+                prompt += `Durante esta sessão, você DEVE seguir estas regras para manter o foco:\n\n`;
+                prompt += `### 1. 🔄 Auto-Refresh de Contexto\n`;
+                prompt += `- A cada 10 interações, use \`refresh_session_context\` para recarregar guidelines\n`;
+                prompt += `- Se passar 30 minutos, recarregue o contexto automaticamente\n`;
+                prompt += `- Mantenha contratos e padrões sempre em mente\n\n`;
+                prompt += `### 2. ✅ Validação Contínua\n`;
+                prompt += `- Antes de implementar, use \`validate_conversation_focus\` para verificar alinhamento\n`;
+                prompt += `- Valide contra contratos usando \`get_contracts\`\n`;
+                prompt += `- Se detectar violação, ALERTE imediatamente\n\n`;
+                prompt += `### 3. 📍 Checkpoints Regulares\n`;
+                prompt += `- A cada feature completada, crie checkpoint com \`create_checkpoint\`\n`;
+                prompt += `- Documente progresso e próximos passos\n`;
+                prompt += `- Mantenha histórico de decisões\n\n`;
+                prompt += `### 4. 🎯 Foco da Sessão\n`;
+                prompt += `- Use \`get_session_state\` para verificar foco atual\n`;
+                prompt += `- Se conversa divergir, redirecione para o objetivo\n`;
+                prompt += `- Consulte \`identify_context\` para entender arquivo atual\n\n`;
+                prompt += `**LEMBRE-SE:** Essas diretrizes são MANDATÓRIAS durante toda a conversa.\n`;
+                return {
+                    messages: [
+                        {
+                            role: 'user',
+                            content: {
+                                type: 'text',
+                                text: prompt,
+                            },
+                        },
+                    ],
+                };
+            }
+            if (name === 'session-resume') {
+                const sessionId = args?.session_id;
+                if (!sessionId) {
+                    throw new Error('session_id é obrigatório');
+                }
+                const projectId = this.projectManager.getCurrentProject();
+                const knowledgePath = this.projectManager.getKnowledgePath(__dirname, projectId);
+                const sessionManager = new SessionManager(knowledgePath);
+                const session = sessionManager.getSession(sessionId);
+                if (!session) {
+                    throw new Error(`Sessão ${sessionId} não encontrada`);
+                }
+                let prompt = `# 🔄 Retomando Sessão de Desenvolvimento\n\n`;
+                prompt += `## 📋 Informações da Sessão\n`;
+                prompt += `- **Session ID:** ${session.sessionId}\n`;
+                prompt += `- **Projeto:** ${session.projectId}\n`;
+                prompt += `- **Contexto:** ${session.context}\n`;
+                prompt += `- **Status:** ${session.status}\n`;
+                prompt += `- **Foco Atual:** ${session.currentFocus}\n`;
+                prompt += `- **Interações:** ${session.turnCount}\n`;
+                prompt += `- **Criada em:** ${session.createdAt.toLocaleString()}\n`;
+                prompt += `- **Última atualização:** ${session.updatedAt.toLocaleString()}\n\n`;
+                if (session.activeContracts.length > 0) {
+                    prompt += `## 📝 Contratos Ativos\n`;
+                    prompt += session.activeContracts.map(c => `- ${c}`).join('\n') + '\n\n';
+                }
+                if (session.activeFeatures.length > 0) {
+                    prompt += `## 🎯 Features em Progresso\n`;
+                    prompt += session.activeFeatures.map(f => `- ${f}`).join('\n') + '\n\n';
+                }
+                if (session.checkpoints.length > 0) {
+                    prompt += `## 🏁 Checkpoints Recentes\n`;
+                    session.checkpoints.slice(-3).forEach(cp => {
+                        prompt += `### ${cp.timestamp.toLocaleString()}\n`;
+                        prompt += `- **Resumo:** ${cp.summary}\n`;
+                        prompt += `- **Próximo Foco:** ${cp.nextFocus}\n\n`;
+                    });
+                }
+                if (session.violations.filter(v => !v.resolved).length > 0) {
+                    prompt += `## ⚠️ Violações Pendentes\n`;
+                    session.violations.filter(v => !v.resolved).forEach(v => {
+                        prompt += `- **[${v.severity.toUpperCase()}]** ${v.description}\n`;
+                        if (v.suggestedFix) {
+                            prompt += `  - Sugestão: ${v.suggestedFix}\n`;
+                        }
+                    });
+                    prompt += '\n';
+                }
+                if (session.focusReminders.length > 0) {
+                    prompt += `## 💡 Lembretes de Foco\n`;
+                    session.focusReminders.forEach(r => {
+                        prompt += `- ${r}\n`;
+                    });
+                    prompt += '\n';
+                }
+                prompt += `\n## ⚡ Continue de onde parou!\n`;
+                prompt += `A sessão está pronta. Use as tools de sessão para manter o foco:\n`;
+                prompt += `- \`get_session_state\` - Ver estado atual\n`;
+                prompt += `- \`refresh_session_context\` - Recarregar guidelines\n`;
+                prompt += `- \`validate_conversation_focus\` - Validar alinhamento\n`;
+                prompt += `- \`create_checkpoint\` - Salvar progresso\n`;
                 return {
                     messages: [
                         {
@@ -1051,6 +1152,202 @@ class ProjectDocsServer {
                                 description: 'Contexto para obter guidelines (opcional)',
                             },
                         },
+                    },
+                },
+                {
+                    name: 'start_session',
+                    description: 'Inicia uma nova sessão de desenvolvimento com rastreamento de foco e validação contínua',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            project_id: {
+                                type: 'string',
+                                description: 'ID do projeto (opcional, usa projeto atual)',
+                            },
+                            context: {
+                                type: 'string',
+                                enum: ['backend', 'frontend', 'infrastructure', 'shared', 'all'],
+                                description: 'Contexto da sessão',
+                            },
+                            current_focus: {
+                                type: 'string',
+                                description: 'Descrição do foco/objetivo atual da sessão',
+                            },
+                            active_contracts: {
+                                type: 'array',
+                                items: { type: 'string' },
+                                description: 'IDs dos contratos que devem ser respeitados (opcional)',
+                            },
+                            active_features: {
+                                type: 'array',
+                                items: { type: 'string' },
+                                description: 'IDs das features sendo trabalhadas (opcional)',
+                            },
+                            focus_reminders: {
+                                type: 'array',
+                                items: { type: 'string' },
+                                description: 'Lembretes específicos para manter o foco (opcional)',
+                            },
+                        },
+                        required: ['context', 'current_focus'],
+                    },
+                },
+                {
+                    name: 'get_session_state',
+                    description: 'Obtém o estado atual da sessão incluindo foco, contratos ativos, turnos e violações',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            session_id: {
+                                type: 'string',
+                                description: 'ID da sessão (opcional, usa última sessão ativa)',
+                            },
+                        },
+                    },
+                },
+                {
+                    name: 'refresh_session_context',
+                    description: 'Recarrega guidelines, contratos e padrões do projeto. Use a cada 10 interações ou 30 minutos.',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            session_id: {
+                                type: 'string',
+                                description: 'ID da sessão (opcional, usa última sessão ativa)',
+                            },
+                        },
+                    },
+                },
+                {
+                    name: 'validate_conversation_focus',
+                    description: 'Valida se a conversa está alinhada com contratos, guidelines e foco da sessão. Detecta violações.',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            session_id: {
+                                type: 'string',
+                                description: 'ID da sessão (opcional, usa última sessão ativa)',
+                            },
+                            proposed_code: {
+                                type: 'string',
+                                description: 'Código proposto para validar (opcional)',
+                            },
+                            proposed_action: {
+                                type: 'string',
+                                description: 'Descrição da ação proposta (opcional)',
+                            },
+                        },
+                    },
+                },
+                {
+                    name: 'create_checkpoint',
+                    description: 'Cria um checkpoint na sessão documentando progresso e próximos passos',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            session_id: {
+                                type: 'string',
+                                description: 'ID da sessão (opcional, usa última sessão ativa)',
+                            },
+                            summary: {
+                                type: 'string',
+                                description: 'Resumo do que foi feito até aqui',
+                            },
+                            next_focus: {
+                                type: 'string',
+                                description: 'Próxima etapa planejada',
+                            },
+                            files_modified: {
+                                type: 'array',
+                                items: { type: 'string' },
+                                description: 'Arquivos modificados desde último checkpoint (opcional)',
+                            },
+                        },
+                        required: ['summary', 'next_focus'],
+                    },
+                },
+                {
+                    name: 'list_active_sessions',
+                    description: 'Lista todas as sessões ativas do projeto',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            project_id: {
+                                type: 'string',
+                                description: 'ID do projeto (opcional, usa projeto atual)',
+                            },
+                        },
+                    },
+                },
+                {
+                    name: 'update_focus',
+                    description: 'Atualiza o foco da sessão atual quando o usuário muda de direção ou objetivo',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            session_id: {
+                                type: 'string',
+                                description: 'ID da sessão (opcional, usa última sessão ativa)',
+                            },
+                            project_id: {
+                                type: 'string',
+                                description: 'ID do projeto (opcional, usa projeto atual)',
+                            },
+                            new_focus: {
+                                type: 'string',
+                                description: 'Nova descrição do foco/objetivo da sessão',
+                            },
+                            reason: {
+                                type: 'string',
+                                description: 'Motivo da mudança de foco (opcional)',
+                            },
+                        },
+                        required: ['new_focus'],
+                    },
+                },
+                {
+                    name: 'get_current_focus',
+                    description: 'Obtém o foco atual da sessão ativa e estado completo. Use no INÍCIO de toda conversa.',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            session_id: {
+                                type: 'string',
+                                description: 'ID da sessão (opcional, usa última sessão ativa)',
+                            },
+                            project_id: {
+                                type: 'string',
+                                description: 'ID do projeto (opcional, usa projeto atual)',
+                            },
+                        },
+                    },
+                },
+                {
+                    name: 'resume_session',
+                    description: 'Reativa uma sessão pausada',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            session_id: {
+                                type: 'string',
+                                description: 'ID da sessão a reativar',
+                            },
+                        },
+                        required: ['session_id'],
+                    },
+                },
+                {
+                    name: 'complete_session',
+                    description: 'Finaliza uma sessão marcando-a como concluída',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            session_id: {
+                                type: 'string',
+                                description: 'ID da sessão a finalizar',
+                            },
+                        },
+                        required: ['session_id'],
                     },
                 },
             ],
@@ -2446,6 +2743,599 @@ ${relatedFeatures.length > 0 ? `- Features: ${relatedFeatures.join(', ')}` : ''}
                                     message: merged.global.length > 0
                                         ? `📋 ${merged.global.length} global guidelines aplicadas ao contexto ${context || 'all'}`
                                         : 'Nenhuma global guideline aplicável. Configure com set_global_guideline.',
+                                }),
+                            }],
+                    };
+                }
+                case 'start_session': {
+                    const providedProjectId = args?.project_id;
+                    const context = args?.context;
+                    const currentFocus = args?.current_focus;
+                    const activeContracts = args?.active_contracts || [];
+                    const activeFeatures = args?.active_features || [];
+                    const focusReminders = args?.focus_reminders || [];
+                    const { projectId, kb } = getProjectContext(providedProjectId);
+                    // Criar SessionManager para o projeto
+                    const projectRoot = this.projectManager.getProjectRoot(projectId);
+                    const knowledgePath = projectRoot
+                        ? join(projectRoot, '.project-docs-mcp')
+                        : join(this.projectManager.getGlobalDir(), 'knowledge', projectId);
+                    const sessionManager = new SessionManager(knowledgePath);
+                    const session = sessionManager.createSession({
+                        projectId,
+                        context,
+                        currentFocus,
+                        activeContracts,
+                        activeFeatures,
+                        focusReminders,
+                    });
+                    return {
+                        content: [{
+                                type: 'text',
+                                text: JSON.stringify({
+                                    success: true,
+                                    message: '🎯 Sessão iniciada com sucesso!',
+                                    session: {
+                                        sessionId: session.sessionId,
+                                        projectId: session.projectId,
+                                        context: session.context,
+                                        currentFocus: session.currentFocus,
+                                        activeContractsCount: session.activeContracts.length,
+                                        activeFeaturesCount: session.activeFeatures.length,
+                                    },
+                                    reminder: `Use get_session_state para verificar status, refresh_session_context a cada 10 interações, e create_checkpoint ao completar etapas.`,
+                                }),
+                            }],
+                    };
+                }
+                case 'get_session_state': {
+                    const sessionId = args?.session_id;
+                    const providedProjectId = args?.project_id;
+                    const { projectId } = getProjectContext(providedProjectId);
+                    const projectRoot = this.projectManager.getProjectRoot(projectId);
+                    const knowledgePath = projectRoot
+                        ? join(projectRoot, '.project-docs-mcp')
+                        : join(this.projectManager.getGlobalDir(), 'knowledge', projectId);
+                    const sessionManager = new SessionManager(knowledgePath);
+                    let session;
+                    if (sessionId) {
+                        session = sessionManager.getSession(sessionId);
+                    }
+                    else {
+                        // Pegar última sessão ativa
+                        const activeSessions = sessionManager.getActiveSessions(projectId);
+                        session = activeSessions[0] || null;
+                    }
+                    if (!session) {
+                        return {
+                            content: [{
+                                    type: 'text',
+                                    text: JSON.stringify({
+                                        success: false,
+                                        message: 'Nenhuma sessão ativa encontrada. Use start_session para iniciar uma nova.',
+                                    }),
+                                }],
+                        };
+                    }
+                    const summary = sessionManager.getSessionSummary(session.sessionId);
+                    const needsRefresh = sessionManager.needsContextRefresh(session.sessionId);
+                    return {
+                        content: [{
+                                type: 'text',
+                                text: JSON.stringify({
+                                    success: true,
+                                    session: {
+                                        sessionId: session.sessionId,
+                                        projectId: session.projectId,
+                                        context: session.context,
+                                        currentFocus: session.currentFocus,
+                                        status: session.status,
+                                        turnCount: session.turnCount,
+                                        activeContracts: session.activeContracts,
+                                        activeFeatures: session.activeFeatures,
+                                        focusReminders: session.focusReminders,
+                                        checkpointsCount: session.checkpoints.length,
+                                        unresolvedViolationsCount: session.violations.filter(v => !v.resolved).length,
+                                        lastContextRefresh: session.lastContextRefresh,
+                                    },
+                                    summary,
+                                    needsContextRefresh: needsRefresh,
+                                    latestCheckpoint: session.checkpoints.length > 0
+                                        ? session.checkpoints[session.checkpoints.length - 1]
+                                        : null,
+                                    unresolvedViolations: session.violations.filter(v => !v.resolved),
+                                }),
+                            }],
+                    };
+                }
+                case 'refresh_session_context': {
+                    const sessionId = args?.session_id;
+                    const providedProjectId = args?.project_id;
+                    const { projectId, kb } = getProjectContext(providedProjectId);
+                    const projectRoot = this.projectManager.getProjectRoot(projectId);
+                    const knowledgePath = projectRoot
+                        ? join(projectRoot, '.project-docs-mcp')
+                        : join(this.projectManager.getGlobalDir(), 'knowledge', projectId);
+                    const sessionManager = new SessionManager(knowledgePath);
+                    let session;
+                    if (sessionId) {
+                        session = sessionManager.getSession(sessionId);
+                    }
+                    else {
+                        const activeSessions = sessionManager.getActiveSessions(projectId);
+                        session = activeSessions[0] || null;
+                    }
+                    if (!session) {
+                        return {
+                            content: [{
+                                    type: 'text',
+                                    text: JSON.stringify({
+                                        success: false,
+                                        message: 'Sessão não encontrada',
+                                    }),
+                                }],
+                        };
+                    }
+                    // Atualizar timestamp de refresh
+                    sessionManager.refreshContext(session.sessionId);
+                    // Obter guidelines atualizadas
+                    const contextForGuidelines = session.context === 'all' ? undefined : session.context;
+                    const merged = kb.getMergedGuidelines(contextForGuidelines);
+                    const contracts = kb.getAllContracts(contextForGuidelines);
+                    const patterns = kb.getAllPatterns(contextForGuidelines);
+                    return {
+                        content: [{
+                                type: 'text',
+                                text: JSON.stringify({
+                                    success: true,
+                                    message: '🔄 Contexto recarregado com sucesso!',
+                                    refreshed: {
+                                        guidelinesCount: merged.global.length,
+                                        contractsCount: contracts.length,
+                                        patternsCount: patterns.length,
+                                        timestamp: new Date(),
+                                    },
+                                    guidelines: merged.merged,
+                                    contracts: contracts.map(c => ({
+                                        id: c.id,
+                                        name: c.name,
+                                        context: c.context,
+                                        rules: c.rules,
+                                    })),
+                                    reminder: `Guidelines e contratos recarregados. Continue respeitando os ${contracts.length} contratos ativos.`,
+                                }),
+                            }],
+                    };
+                }
+                case 'validate_conversation_focus': {
+                    const sessionId = args?.session_id;
+                    const proposedCode = args?.proposed_code;
+                    const proposedAction = args?.proposed_action;
+                    const providedProjectId = args?.project_id;
+                    const { projectId, kb } = getProjectContext(providedProjectId);
+                    const projectRoot = this.projectManager.getProjectRoot(projectId);
+                    const knowledgePath = projectRoot
+                        ? join(projectRoot, '.project-docs-mcp')
+                        : join(this.projectManager.getGlobalDir(), 'knowledge', projectId);
+                    const sessionManager = new SessionManager(knowledgePath);
+                    let session;
+                    if (sessionId) {
+                        session = sessionManager.getSession(sessionId);
+                    }
+                    else {
+                        const activeSessions = sessionManager.getActiveSessions(projectId);
+                        session = activeSessions[0] || null;
+                    }
+                    if (!session) {
+                        return {
+                            content: [{
+                                    type: 'text',
+                                    text: JSON.stringify({
+                                        success: false,
+                                        message: 'Sessão não encontrada',
+                                    }),
+                                }],
+                        };
+                    }
+                    // Incrementar turnos
+                    sessionManager.incrementTurn(session.sessionId);
+                    const violations = [];
+                    // Validar código proposto contra contratos
+                    if (proposedCode && session.context !== 'all') {
+                        const validation = kb.validateAgainstContracts(proposedCode, session.context);
+                        if (!validation.valid) {
+                            validation.violations.forEach(v => {
+                                sessionManager.addViolation(session.sessionId, {
+                                    type: v.type,
+                                    severity: 'error',
+                                    description: v.reason,
+                                    suggestedFix: `Verifique o contrato '${v.name}' e ajuste a implementação.`,
+                                    resolved: false,
+                                });
+                                violations.push(v);
+                            });
+                        }
+                    }
+                    // Verificar se ação está alinhada com foco da sessão
+                    if (proposedAction && session.currentFocus) {
+                        const focusKeywords = session.currentFocus.toLowerCase().split(' ');
+                        const actionKeywords = proposedAction.toLowerCase().split(' ');
+                        const overlap = focusKeywords.filter(k => actionKeywords.includes(k));
+                        if (overlap.length === 0 && proposedAction.length > 10) {
+                            const warning = {
+                                type: 'context',
+                                severity: 'warning',
+                                description: `Ação proposta pode não estar alinhada com o foco da sessão: "${session.currentFocus}"`,
+                                suggestedFix: 'Verifique se está trabalhando no escopo correto ou atualize o foco da sessão.',
+                                resolved: false,
+                            };
+                            sessionManager.addViolation(session.sessionId, warning);
+                            violations.push(warning);
+                        }
+                    }
+                    // Verificar se precisa de refresh
+                    const needsRefresh = sessionManager.needsContextRefresh(session.sessionId);
+                    return {
+                        content: [{
+                                type: 'text',
+                                text: JSON.stringify({
+                                    success: true,
+                                    valid: violations.length === 0,
+                                    message: violations.length === 0
+                                        ? '✅ Validação OK! Está alinhado com contratos e foco da sessão.'
+                                        : `⚠️ ${violations.length} violação(ões) detectada(s)!`,
+                                    violations,
+                                    sessionState: {
+                                        turnCount: session.turnCount + 1,
+                                        currentFocus: session.currentFocus,
+                                        needsContextRefresh: needsRefresh,
+                                    },
+                                    reminder: needsRefresh.needed
+                                        ? `⚠️ ${needsRefresh.reason}. Use refresh_session_context para recarregar guidelines.`
+                                        : undefined,
+                                }),
+                            }],
+                    };
+                }
+                case 'create_checkpoint': {
+                    const sessionId = args?.session_id;
+                    const summary = args?.summary;
+                    const nextFocus = args?.next_focus;
+                    const filesModified = args?.files_modified || [];
+                    const providedProjectId = args?.project_id;
+                    const { projectId, kb } = getProjectContext(providedProjectId);
+                    const projectRoot = this.projectManager.getProjectRoot(projectId);
+                    const knowledgePath = projectRoot
+                        ? join(projectRoot, '.project-docs-mcp')
+                        : join(this.projectManager.getGlobalDir(), 'knowledge', projectId);
+                    const sessionManager = new SessionManager(knowledgePath);
+                    let session;
+                    if (sessionId) {
+                        session = sessionManager.getSession(sessionId);
+                    }
+                    else {
+                        const activeSessions = sessionManager.getActiveSessions(projectId);
+                        session = activeSessions[0] || null;
+                    }
+                    if (!session) {
+                        return {
+                            content: [{
+                                    type: 'text',
+                                    text: JSON.stringify({
+                                        success: false,
+                                        message: 'Sessão não encontrada',
+                                    }),
+                                }],
+                        };
+                    }
+                    // Obter guidelines ativas
+                    const contextForGuidelines = session.context === 'all' ? undefined : session.context;
+                    const merged = kb.getMergedGuidelines(contextForGuidelines);
+                    const activeGuidelines = merged.global.map(g => g.title);
+                    sessionManager.addCheckpoint(session.sessionId, {
+                        turnCount: session.turnCount,
+                        summary,
+                        nextFocus,
+                        activeGuidelines,
+                        filesModified,
+                    });
+                    // Atualizar foco da sessão
+                    sessionManager.updateSession(session.sessionId, {
+                        currentFocus: nextFocus,
+                    });
+                    return {
+                        content: [{
+                                type: 'text',
+                                text: JSON.stringify({
+                                    success: true,
+                                    message: '🏁 Checkpoint criado com sucesso!',
+                                    checkpoint: {
+                                        turnCount: session.turnCount,
+                                        summary,
+                                        nextFocus,
+                                        filesModified,
+                                        timestamp: new Date(),
+                                    },
+                                    updatedSession: {
+                                        currentFocus: nextFocus,
+                                        checkpointsCount: session.checkpoints.length + 1,
+                                    },
+                                }),
+                            }],
+                    };
+                }
+                case 'list_active_sessions': {
+                    const providedProjectId = args?.project_id;
+                    const { projectId } = getProjectContext(providedProjectId);
+                    const projectRoot = this.projectManager.getProjectRoot(projectId);
+                    const knowledgePath = projectRoot
+                        ? join(projectRoot, '.project-docs-mcp')
+                        : join(this.projectManager.getGlobalDir(), 'knowledge', projectId);
+                    const sessionManager = new SessionManager(knowledgePath);
+                    const activeSessions = sessionManager.getActiveSessions(projectId);
+                    const summaries = activeSessions.map(s => sessionManager.getSessionSummary(s.sessionId));
+                    return {
+                        content: [{
+                                type: 'text',
+                                text: JSON.stringify({
+                                    success: true,
+                                    count: activeSessions.length,
+                                    message: activeSessions.length > 0
+                                        ? `📋 ${activeSessions.length} sessão(ões) ativa(s) encontrada(s)`
+                                        : 'Nenhuma sessão ativa. Use start_session para iniciar.',
+                                    sessions: summaries,
+                                }),
+                            }],
+                    };
+                }
+                case 'update_focus': {
+                    const sessionId = args?.session_id;
+                    const providedProjectId = args?.project_id;
+                    const newFocus = args?.new_focus;
+                    const reason = args?.reason;
+                    if (!newFocus) {
+                        return {
+                            content: [{
+                                    type: 'text',
+                                    text: JSON.stringify({
+                                        success: false,
+                                        message: 'new_focus é obrigatório',
+                                    }),
+                                }],
+                        };
+                    }
+                    const { projectId } = getProjectContext(providedProjectId);
+                    const projectRoot = this.projectManager.getProjectRoot(projectId);
+                    const knowledgePath = projectRoot
+                        ? join(projectRoot, '.project-docs-mcp')
+                        : join(this.projectManager.getGlobalDir(), 'knowledge', projectId);
+                    const sessionManager = new SessionManager(knowledgePath);
+                    let session;
+                    if (sessionId) {
+                        session = sessionManager.getSession(sessionId);
+                    }
+                    else {
+                        const activeSessions = sessionManager.getActiveSessions(projectId);
+                        session = activeSessions[0] || null;
+                    }
+                    if (!session) {
+                        return {
+                            content: [{
+                                    type: 'text',
+                                    text: JSON.stringify({
+                                        success: false,
+                                        message: 'Nenhuma sessão ativa encontrada. Use start_session primeiro.',
+                                    }),
+                                }],
+                        };
+                    }
+                    const oldFocus = session.currentFocus;
+                    const updatedSession = sessionManager.updateFocus(session.sessionId, newFocus, reason);
+                    return {
+                        content: [{
+                                type: 'text',
+                                text: JSON.stringify({
+                                    success: true,
+                                    message: '🎯 Foco da sessão atualizado!',
+                                    change: {
+                                        from: oldFocus,
+                                        to: newFocus,
+                                        reason: reason || 'Mudança de direção',
+                                    },
+                                    session: {
+                                        sessionId: updatedSession?.sessionId,
+                                        currentFocus: updatedSession?.currentFocus,
+                                        turnCount: updatedSession?.turnCount,
+                                        checkpointsCount: updatedSession?.checkpoints.length,
+                                    },
+                                    reminder: 'Checkpoint automático criado para registrar a mudança de foco.',
+                                }),
+                            }],
+                    };
+                }
+                case 'get_current_focus': {
+                    const sessionId = args?.session_id;
+                    const providedProjectId = args?.project_id;
+                    const { projectId, kb } = getProjectContext(providedProjectId);
+                    const projectRoot = this.projectManager.getProjectRoot(projectId);
+                    const knowledgePath = projectRoot
+                        ? join(projectRoot, '.project-docs-mcp')
+                        : join(this.projectManager.getGlobalDir(), 'knowledge', projectId);
+                    const sessionManager = new SessionManager(knowledgePath);
+                    const session = sessionManager.getCurrentFocus(projectId, sessionId);
+                    if (!session) {
+                        return {
+                            content: [{
+                                    type: 'text',
+                                    text: JSON.stringify({
+                                        success: false,
+                                        message: 'Nenhuma sessão ativa encontrada',
+                                        action: 'Use start_session para iniciar uma nova sessão e definir o foco',
+                                        example: {
+                                            tool: 'start_session',
+                                            params: {
+                                                context: 'backend',
+                                                current_focus: 'Implementar autenticação JWT',
+                                            },
+                                        },
+                                    }),
+                                }],
+                        };
+                    }
+                    const summary = sessionManager.getSessionSummary(session.sessionId);
+                    const needsRefresh = sessionManager.needsContextRefresh(session.sessionId);
+                    // Obter guidelines e contratos atuais
+                    const contextForGuidelines = session.context === 'all' ? undefined : session.context;
+                    const merged = kb.getMergedGuidelines(contextForGuidelines);
+                    const contracts = kb.getAllContracts(contextForGuidelines);
+                    return {
+                        content: [{
+                                type: 'text',
+                                text: JSON.stringify({
+                                    success: true,
+                                    message: '🎯 Sessão ativa encontrada',
+                                    session: {
+                                        sessionId: session.sessionId,
+                                        projectId: session.projectId,
+                                        context: session.context,
+                                        currentFocus: session.currentFocus,
+                                        status: session.status,
+                                        turnCount: session.turnCount,
+                                        activeContracts: session.activeContracts,
+                                        activeFeatures: session.activeFeatures,
+                                        focusReminders: session.focusReminders,
+                                    },
+                                    progress: {
+                                        checkpointsCount: session.checkpoints.length,
+                                        unresolvedViolationsCount: session.violations.filter(v => !v.resolved).length,
+                                        duration: summary?.duration,
+                                    },
+                                    latestCheckpoint: session.checkpoints.length > 0
+                                        ? session.checkpoints[session.checkpoints.length - 1]
+                                        : null,
+                                    activeGuidelines: merged.global.map(g => ({ title: g.title, category: g.category })),
+                                    activeContracts: contracts.map(c => ({ id: c.id, name: c.name, context: c.context })),
+                                    needsContextRefresh: needsRefresh,
+                                    reminder: needsRefresh.needed
+                                        ? `⚠️ ${needsRefresh.reason}. Use refresh_session_context para recarregar.`
+                                        : 'Contexto atualizado. Continue trabalhando com foco e validação.',
+                                }),
+                            }],
+                    };
+                }
+                case 'resume_session': {
+                    const sessionId = args?.session_id;
+                    if (!sessionId) {
+                        return {
+                            content: [{
+                                    type: 'text',
+                                    text: JSON.stringify({
+                                        success: false,
+                                        message: 'session_id é obrigatório',
+                                    }),
+                                }],
+                        };
+                    }
+                    // Primeiro, carregar a sessão para obter o projectId
+                    const currentProject = this.projectManager.getCurrentProject();
+                    const tempKnowledgePath = join(this.projectManager.getGlobalDir(), 'knowledge', currentProject);
+                    const tempSessionManager = new SessionManager(tempKnowledgePath);
+                    const tempSession = tempSessionManager.getSession(sessionId);
+                    if (!tempSession) {
+                        return {
+                            content: [{
+                                    type: 'text',
+                                    text: JSON.stringify({
+                                        success: false,
+                                        message: 'Sessão não encontrada',
+                                    }),
+                                }],
+                        };
+                    }
+                    // Agora usar o projectId da sessão para obter o path correto
+                    const projectRoot = this.projectManager.getProjectRoot(tempSession.projectId);
+                    const knowledgePath = projectRoot
+                        ? join(projectRoot, '.project-docs-mcp')
+                        : join(this.projectManager.getGlobalDir(), 'knowledge', tempSession.projectId);
+                    const sessionManager = new SessionManager(knowledgePath);
+                    const session = sessionManager.resumeSession(sessionId);
+                    if (!session) {
+                        return {
+                            content: [{
+                                    type: 'text',
+                                    text: JSON.stringify({
+                                        success: false,
+                                        message: 'Sessão não encontrada',
+                                    }),
+                                }],
+                        };
+                    }
+                    return {
+                        content: [{
+                                type: 'text',
+                                text: JSON.stringify({
+                                    success: true,
+                                    message: '▶️ Sessão reativada!',
+                                    session: {
+                                        sessionId: session.sessionId,
+                                        projectId: session.projectId,
+                                        currentFocus: session.currentFocus,
+                                        context: session.context,
+                                        turnCount: session.turnCount,
+                                        checkpointsCount: session.checkpoints.length,
+                                        status: session.status,
+                                    },
+                                    reminder: 'Use get_current_focus para ver o estado completo e continuar de onde parou.',
+                                }),
+                            }],
+                    };
+                }
+                case 'complete_session': {
+                    const sessionId = args?.session_id;
+                    const providedProjectId = args?.project_id;
+                    if (!sessionId) {
+                        return {
+                            content: [{
+                                    type: 'text',
+                                    text: JSON.stringify({
+                                        success: false,
+                                        message: 'session_id é obrigatório',
+                                    }),
+                                }],
+                        };
+                    }
+                    const { projectId } = getProjectContext(providedProjectId);
+                    const projectRoot = this.projectManager.getProjectRoot(projectId);
+                    const knowledgePath = projectRoot
+                        ? join(projectRoot, '.project-docs-mcp')
+                        : join(this.projectManager.getGlobalDir(), 'knowledge', projectId);
+                    const sessionManager = new SessionManager(knowledgePath);
+                    const session = sessionManager.completeSession(sessionId);
+                    if (!session) {
+                        return {
+                            content: [{
+                                    type: 'text',
+                                    text: JSON.stringify({
+                                        success: false,
+                                        message: 'Sessão não encontrada',
+                                    }),
+                                }],
+                        };
+                    }
+                    const summary = sessionManager.getSessionSummary(sessionId);
+                    return {
+                        content: [{
+                                type: 'text',
+                                text: JSON.stringify({
+                                    success: true,
+                                    message: '✅ Sessão finalizada com sucesso!',
+                                    summary: {
+                                        duration: summary?.duration,
+                                        turnCount: summary?.turnCount,
+                                        checkpointsCount: summary?.checkpointsCount,
+                                        resolvedViolations: session.violations.filter(v => v.resolved).length,
+                                        totalViolations: session.violations.length,
+                                    },
                                 }),
                             }],
                     };

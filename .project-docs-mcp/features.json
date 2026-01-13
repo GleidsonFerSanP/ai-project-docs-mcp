@@ -141,6 +141,250 @@
       ],
       "createdAt": "2026-01-05T01:02:00.612Z",
       "updatedAt": "2026-01-05T01:02:00.612Z"
+    },
+    {
+      "id": "feat-1768267178590-hxyuk7tyr",
+      "name": "Session Focus Management System",
+      "context": "infrastructure",
+      "description": "Sistema completo de gerenciamento de foco conversacional para AI agents com 3 novas ferramentas MCP: update_focus (atualiza foco da sessão), get_current_focus (recupera estado atual), e resume_session (retoma sessão pausada). Inclui checkpoint automático ao atualizar foco e validação contra guidelines.",
+      "businessRules": [
+        "Toda sessão deve ter um foco claro e específico",
+        "Update de foco cria checkpoint automaticamente",
+        "Foco deve ser atualizado quando direção da conversa muda",
+        "Context refresh a cada 10 interações ou 30 minutos",
+        "Foco refinado é melhor que foco genérico"
+      ],
+      "useCases": [
+        {
+          "name": "Mudança de Direção",
+          "description": "Usuário muda de tarefa durante conversa",
+          "steps": [
+            "AI detecta mudança de objetivo",
+            "Chama update_focus com novo foco",
+            "Sistema cria checkpoint automático",
+            "Sessão continua com novo foco"
+          ]
+        },
+        {
+          "name": "Recuperação de Contexto",
+          "description": "AI recupera contexto de sessão ativa",
+          "steps": [
+            "AI chama get_current_focus",
+            "Recebe foco atual e checkpoints",
+            "Alinha trabalho com foco estabelecido"
+          ]
+        }
+      ],
+      "relatedContracts": [],
+      "relatedPatterns": [],
+      "dependencies": [
+        "SessionManager class",
+        "@modelcontextprotocol/sdk",
+        "VS Code Extension API"
+      ],
+      "apiEndpoints": [
+        {
+          "method": "MCP_TOOL",
+          "path": "update_focus",
+          "description": "Atualiza foco da sessão ativa com reason"
+        },
+        {
+          "method": "MCP_TOOL",
+          "path": "get_current_focus",
+          "description": "Recupera estado da sessão ativa"
+        },
+        {
+          "method": "MCP_TOOL",
+          "path": "resume_session",
+          "description": "Retoma sessão pausada"
+        }
+      ],
+      "status": "completed",
+      "tags": [
+        "session-management",
+        "focus-tracking",
+        "mcp-tools",
+        "v1.4.0"
+      ],
+      "notes": "",
+      "filePaths": [
+        "src/session-manager.ts",
+        "src/index.ts",
+        "extension/mcp-server/session-manager.js",
+        "extension/mcp-server/index.js"
+      ],
+      "createdAt": "2026-01-13T01:19:38.590Z",
+      "updatedAt": "2026-01-13T01:19:38.590Z"
+    },
+    {
+      "id": "feat-1768267179725-7ypwhj4ju",
+      "name": "GitHub Copilot Instructions Integration",
+      "context": "infrastructure",
+      "description": "Arquivo completo de instruções (.github/copilot-instructions.md) que é carregado automaticamente pelo GitHub Copilot. Garante que o AI agent sempre identifique contexto, carregue guidelines, mantenha foco conversacional e valide contratos antes de qualquer mudança no código. Registrado no package.json como chatInstruction.",
+      "businessRules": [
+        "Copilot DEVE carregar instruções no início de TODA conversa",
+        "Context ANTES de code - nunca codificar sem identificar contexto",
+        "Focus First - estabelecer foco antes de começar trabalho",
+        "Checkpoint após tarefas significativas",
+        "Validar contratos antes de implementar interfaces",
+        "Refresh context a cada 10 interações"
+      ],
+      "useCases": [
+        {
+          "name": "Início de Conversa",
+          "description": "Copilot carrega contexto automaticamente",
+          "steps": [
+            "Usuário faz pergunta",
+            "Copilot lê copilot-instructions.md",
+            "Identifica contexto do projeto",
+            "Carrega guidelines e contratos",
+            "Responde alinhado com regras"
+          ]
+        },
+        {
+          "name": "Validação de Código",
+          "description": "Copilot valida mudanças contra contratos",
+          "steps": [
+            "Usuário pede implementação",
+            "Copilot identifica interfaces envolvidas",
+            "Valida contra contratos registrados",
+            "Implementa ou alerta sobre violações"
+          ]
+        }
+      ],
+      "relatedContracts": [],
+      "relatedPatterns": [],
+      "dependencies": [
+        "GitHub Copilot Chat",
+        "VS Code chatInstruction API",
+        "MCP Documentation Tools"
+      ],
+      "apiEndpoints": [],
+      "status": "completed",
+      "tags": [
+        "github-copilot",
+        "chatInstruction",
+        "context-awareness",
+        "v1.4.0"
+      ],
+      "notes": "",
+      "filePaths": [
+        ".github/copilot-instructions.md",
+        "extension/resources/instructions/github-copilot.instructions.md",
+        "extension/package.json"
+      ],
+      "createdAt": "2026-01-13T01:19:39.725Z",
+      "updatedAt": "2026-01-13T01:19:39.725Z"
+    },
+    {
+      "id": "feat-1768267181068-z4xzcqaoq",
+      "name": "Categorized Logging System (OutputChannel)",
+      "context": "infrastructure",
+      "description": "Sistema de logging integrado ao VS Code usando OutputChannel API com 5 níveis (info, warning, error, debug, success), timestamps automáticos, categorização visual com emojis, e painel dedicado 'AI Project Context' no Output. Inspirado no MCP Image Reader para melhor diagnóstico de problemas.",
+      "businessRules": [
+        "Usar log() ao invés de console.log",
+        "Timestamp automático em todas as mensagens",
+        "Emojis visuais para cada nível",
+        "Logging deve ser categorizado por severidade",
+        "Painel Output deve ser acessível via Cmd+Shift+U"
+      ],
+      "useCases": [
+        {
+          "name": "Debug de Extensão",
+          "description": "Desenvolvedor verifica logs de ativação",
+          "steps": [
+            "Abre Output panel (Cmd+Shift+U)",
+            "Seleciona 'AI Project Context'",
+            "Vê logs categorizados com timestamps",
+            "Identifica problemas facilmente"
+          ]
+        },
+        {
+          "name": "Logging de MCP Registration",
+          "description": "Sistema registra status do MCP",
+          "steps": [
+            "Extension ativa",
+            "log('MCP Server registered', 'info')",
+            "Aparece no Output com ✅ e timestamp"
+          ]
+        }
+      ],
+      "relatedContracts": [],
+      "relatedPatterns": [],
+      "dependencies": [
+        "VS Code API (vscode.window.createOutputChannel)",
+        "LogOutputChannel type"
+      ],
+      "apiEndpoints": [],
+      "status": "completed",
+      "tags": [
+        "logging",
+        "diagnostics",
+        "OutputChannel",
+        "v1.4.0"
+      ],
+      "notes": "",
+      "filePaths": [
+        "extension/src/extension.ts"
+      ],
+      "createdAt": "2026-01-13T01:19:41.068Z",
+      "updatedAt": "2026-01-13T01:19:41.068Z"
+    },
+    {
+      "id": "feat-1768267183127-5ahvfl1wc",
+      "name": "Extension Rebranding: ai-project-context",
+      "context": "infrastructure",
+      "description": "Renomeação completa da extensão de 'project-docs-mcp' para 'ai-project-context' em v1.4.0. Atualização sistemática de todos os identificadores: nome da extensão, displayName, MCP ID, comandos (ai-project-context.*), configurações (aiProjectContext.*), @mentions, README, e paths de instalação.",
+      "businessRules": [
+        "Nome da extensão deve ser consistente em todos os arquivos",
+        "MCP ID deve coincidir em package.json e extension.ts",
+        "Comandos devem usar prefixo da extensão",
+        "Configurações devem usar camelCase do nome",
+        "@mentions no Copilot devem refletir novo nome"
+      ],
+      "useCases": [
+        {
+          "name": "Instalação de Extensão",
+          "description": "Usuário instala nova versão renomeada",
+          "steps": [
+            "Desinstala versão antiga",
+            "Instala ai-project-context-1.4.0.vsix",
+            "Recarrega VS Code",
+            "Verifica @ no Copilot mostra novo nome"
+          ]
+        },
+        {
+          "name": "Migração de Configurações",
+          "description": "Configurações migradas automaticamente",
+          "steps": [
+            "VS Code detecta novo nome",
+            "Mantém configurações existentes",
+            "Usuário não precisa reconfigurar"
+          ]
+        }
+      ],
+      "relatedContracts": [],
+      "relatedPatterns": [],
+      "dependencies": [
+        "VS Code Extension API",
+        "VSCE packaging tool"
+      ],
+      "apiEndpoints": [],
+      "status": "completed",
+      "tags": [
+        "rebranding",
+        "version-1.4.0",
+        "naming",
+        "migration"
+      ],
+      "notes": "",
+      "filePaths": [
+        "extension/package.json",
+        "extension/src/extension.ts",
+        "extension/README.md"
+      ],
+      "createdAt": "2026-01-13T01:19:43.127Z",
+      "updatedAt": "2026-01-13T01:19:43.127Z"
     }
   ]
 }
