@@ -7,8 +7,8 @@ Model Context Protocol (MCP) server that acts as a **single source of truth** fo
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue)](https://www.typescriptlang.org/)
 [![MCP](https://img.shields.io/badge/MCP-1.0-green)](https://modelcontextprotocol.io/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![VS Code Marketplace](https://img.shields.io/visual-studio-marketplace/v/GleidsonFerSanP.project-docs-mcp)](https://marketplace.visualstudio.com/items?itemName=GleidsonFerSanP.project-docs-mcp)
-[![VS Code Installs](https://img.shields.io/visual-studio-marketplace/i/GleidsonFerSanP.project-docs-mcp)](https://marketplace.visualstudio.com/items?itemName=GleidsonFerSanP.project-docs-mcp)
+[![VS Code Marketplace](https://img.shields.io/visual-studio-marketplace/v/GleidsonFerSanP.ai-project-context)](https://marketplace.visualstudio.com/items?itemName=GleidsonFerSanP.ai-project-context)
+[![VS Code Installs](https://img.shields.io/visual-studio-marketplace/i/GleidsonFerSanP.ai-project-context)](https://marketplace.visualstudio.com/items?itemName=GleidsonFerSanP.ai-project-context)
 
 ---
 
@@ -62,7 +62,7 @@ Manage documentation for multiple projects independently with automatic context 
 
 ### 🌍 Cross-Machine Portability
 
-* Environment variable support (`${HOME}`,     `${USER}`)
+* Environment variable support (`${HOME}`,      `${USER}`)
 * Works seamlessly across macOS, Linux, and Windows
 * Clean separation between framework and user data
 
@@ -76,9 +76,9 @@ One-click installation with automatic MCP configuration.
 
 ### Option 1: VS Code Extension (Recommended)
 
-VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=GleidsonFerSanP.project-docs-mcp)
+VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=GleidsonFerSanP.ai-project-context)
 1. **Install from VS Code Marketplace**
-   - Search for "Project Docs MCP" or visit [marketplace link]
+   - Search for "AI Project Context" or visit [marketplace link]
    - Click Install
 
 2. **Extension auto-configures everything!**

@@ -7,25 +7,7 @@ src
 tsconfig.json
 .gitignore
 package-lock.json
-
-# Incluir MCP server compilado
-!../dist/**
-!../package.json
-!../mcp-config.example.json
-
-# Incluir knowledge base exemplo
-!../knowledge/example-project/**
-
-# Incluir docs compartilhados
-!../docs/_shared/**
-!../docs/contracts/**
-!../docs/patterns/**
-
-# Excluir projetos pessoais
-../knowledge/jarvis/**
-../knowledge/automacao-n8n/**
-../knowledge/educate/**
-../docs/jarvis/**
-../docs/automacao-n8n/**
-../docs/educate/**
 .env
+
+# Docs e knowledge base são incluídos por padrão
+# (copiados para extension/docs/ e extension/knowledge/ antes do empacotamento)

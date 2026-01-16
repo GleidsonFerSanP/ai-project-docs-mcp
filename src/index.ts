@@ -461,6 +461,27 @@ class ProjectDocsServer {
           },
         },
         {
+          name: 'get_complete_project_context',
+          description: '🎯 CONTEXTO COMPLETO: Obtém sumário executivo do projeto com TUDO que o AI precisa saber - decisões arquiteturais, restrições, contratos, guidelines, features, padrões. Use SEMPRE no início de conversas sobre o projeto. NUNCA retorna contexto global/aleatório, apenas do projeto específico.',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              project_id: {
+                type: 'string',
+                description: 'ID do projeto (opcional, usa projeto atual)',
+              },
+              include_features: {
+                type: 'boolean',
+                description: 'Incluir features registradas (default: true)',
+              },
+              include_patterns: {
+                type: 'boolean',
+                description: 'Incluir padrões aprendidos (default: true)',
+              },
+            },
+          },
+        },
+        {
           name: 'switch_project',
           description: 'Muda o contexto para outro projeto',
           inputSchema: {
@@ -1576,6 +1597,198 @@ class ProjectDocsServer {
                 project: info,
               docs_path: this.projectManager.getDocsPath(join(__dirname, '../docs'), projectId),
               knowledge_path: this.projectManager.getKnowledgePath(join(__dirname, '../knowledge'), projectId),
+              }),
+            }],
+          };
+        }
+
+        case 'get_complete_project_context': {
+          const providedProjectId = args?.project_id as string;
+          const includeFeatures = args?.include_features !== false; // default true
+          const includePatterns = args?.include_patterns !== false; // default true
+
+          const { projectId, kb } = getProjectContext(providedProjectId);
+          const config = this.projectManager.getProjectConfig(projectId);
+
+          if (!config) {
+            return {
+              content: [{
+                type: 'text',
+                text: JSON.stringify({
+                  error: `Projeto '${projectId}' não configurado`,
+                  hint: 'Use create_project para configurar o projeto',
+                }),
+              }],
+            };
+          }
+
+          // 1. Decisões Arquiteturais
+          const decisions = kb.getAllDecisions();
+
+          // 2. Contratos Críticos
+          const contracts = kb.getAllContracts();
+
+          // 3. Guidelines (Global + Project)
+          const guidelinesBackend = kb.getMergedGuidelines('backend');
+          const guidelinesFrontend = kb.getMergedGuidelines('frontend');
+          const guidelinesInfra = kb.getMergedGuidelines('infrastructure');
+
+          // 4. Features (opcional)
+          const features = includeFeatures ? kb.getAllFeatures() : [];
+
+          // 5. Padrões (opcional)
+          const patterns = includePatterns ? kb.getAllPatterns() : [];
+
+          // 6. Sumário Executivo
+          const summary = {
+            overview: {
+              projectId,
+              name: config.name,
+              description: config.description,
+              stack: config.stack,
+              principles: config.principles,
+            },
+            restrictions_and_rules: {
+              total_contracts: contracts.length,
+              critical_interfaces: contracts.map(c => ({
+                name: c.name,
+                context: c.context,
+                rules_count: c.rules.length,
+              })),
+              total_decisions: decisions.length,
+              architectural_decisions: decisions.map(d => ({
+                id: d.id,
+                title: d.title,
+                status: d.status,
+                context: d.context,
+              })),
+            },
+            guidelines: {
+              backend: {
+                global_count: guidelinesBackend.global.length,
+                has_project_specific: guidelinesBackend.projectSpecific.length > 0,
+              },
+              frontend: {
+                global_count: guidelinesFrontend.global.length,
+                has_project_specific: guidelinesFrontend.projectSpecific.length > 0,
+              },
+              infrastructure: {
+                global_count: guidelinesInfra.global.length,
+                has_project_specific: guidelinesInfra.projectSpecific.length > 0,
+              },
+            },
+            features_summary: includeFeatures ? {
+              total: features.length,
+              by_status: {
+                planned: features.filter(f => f.status === 'planned').length,
+                in_progress: features.filter(f => f.status === 'in-progress').length,
+                completed: features.filter(f => f.status === 'completed').length,
+                deprecated: features.filter(f => f.status === 'deprecated').length,
+              },
+              by_context: {
+                backend: features.filter(f => f.context === 'backend').length,
+                frontend: features.filter(f => f.context === 'frontend').length,
+                infrastructure: features.filter(f => f.context === 'infrastructure').length,
+              },
+            } : undefined,
+            patterns_summary: includePatterns ? {
+              total: patterns.length,
+              by_context: {
+                backend: patterns.filter(p => p.context === 'backend').length,
+                frontend: patterns.filter(p => p.context === 'frontend').length,
+                infrastructure: patterns.filter(p => p.context === 'infrastructure').length,
+                shared: patterns.filter(p => p.context === 'shared').length,
+              },
+            } : undefined,
+          };
+
+          // 7. Texto formatado para o AI (pronto para usar)
+          const formattedContext = `
+# 🎯 Contexto Completo do Projeto: ${config.name}
+
+## 📋 Visão Geral
+**ID:** ${projectId}
+**Descrição:** ${config.description}
+
+## 🏗️ Stack Tecnológico
+${Object.entries(config.stack).map(([key, value]) => `- **${key}**: ${value}`).join('\n')}
+
+## 🎯 Princípios Arquiteturais
+${config.principles.map(p => `- ${p}`).join('\n')}
+
+## 🚨 Decisões Arquiteturais (ADRs) - ${decisions.length} registradas
+${decisions.length > 0 ? decisions.map(d => `
+### ${d.id}: ${d.title}
+- **Status:** ${d.status}
+- **Contexto:** ${d.context}
+- **Decisão:** ${d.decision}
+- **Trade-offs Positivos:** ${d.consequences?.positive?.join(', ') || 'N/A'}
+- **Trade-offs Negativos:** ${d.consequences?.negative?.join(', ') || 'N/A'}
+`).join('\n') : '- Nenhuma decisão registrada ainda'}
+
+## 🔒 Contratos Críticos - ${contracts.length} registrados
+${contracts.length > 0 ? contracts.map(c => `
+### ${c.name} (${c.context})
+${c.description}
+**Regras OBRIGATÓRIAS:**
+${c.rules.map((r, i) => `${i + 1}. ${r}`).join('\n')}
+`).join('\n') : '- Nenhum contrato registrado ainda'}
+
+## 📐 Guidelines Ativas
+${guidelinesBackend.global.length > 0 ? `
+### Backend (${guidelinesBackend.global.length} globais)
+${guidelinesBackend.merged}
+` : ''}
+${guidelinesFrontend.global.length > 0 ? `
+### Frontend (${guidelinesFrontend.global.length} globais)
+${guidelinesFrontend.merged}
+` : ''}
+${guidelinesInfra.global.length > 0 ? `
+### Infrastructure (${guidelinesInfra.global.length} globais)
+${guidelinesInfra.merged}
+` : ''}
+
+${includeFeatures && features.length > 0 ? `
+## ✨ Features Principais
+${features.slice(0, 10).map(f => `- **${f.name}** (${f.status}) - ${f.context}`).join('\n')}
+${features.length > 10 ? `\n... e mais ${features.length - 10} features` : ''}
+` : ''}
+
+${includePatterns && patterns.length > 0 ? `
+## 🔧 Padrões Identificados
+${patterns.slice(0, 5).map(p => `- **${p.name}** (${p.context})`).join('\n')}
+${patterns.length > 5 ? `\n... e mais ${patterns.length - 5} padrões` : ''}
+` : ''}
+
+---
+**⚠️ IMPORTANTE:** Sempre respeite decisões arquiteturais e contratos ao trabalhar neste projeto!
+`;
+
+          return {
+            content: [{
+              type: 'text',
+              text: JSON.stringify({
+                success: true,
+                project: projectId,
+                summary,
+                formatted_context: formattedContext,
+                full_data: {
+                  decisions,
+                  contracts,
+                  guidelines: {
+                    backend: guidelinesBackend,
+                    frontend: guidelinesFrontend,
+                    infrastructure: guidelinesInfra,
+                  },
+                  features: includeFeatures ? features : undefined,
+                  patterns: includePatterns ? patterns : undefined,
+                },
+                next_steps: [
+                  'Use este contexto para alinhar seu trabalho com as regras do projeto',
+                  'Consulte contratos específicos com get_contracts quando implementar interfaces',
+                  'Valide código contra contratos com validate_contract antes de finalizar',
+                  'Registre novas decisões com add_decision',
+                ],
               }),
             }],
           };

@@ -160,8 +160,36 @@
       "status": "accepted",
       "id": "ADR-006",
       "createdAt": "2026-01-13T01:21:29.189Z"
+    },
+    {
+      "title": "Tool get_complete_project_context para Contexto Completo",
+      "context": "Usu\\u00e1rio pediu tool que: 1) Consulte sempre por projeto espec\\u00edfico, 2) Compile TUDO relevante (decis\\u00f5es, restri\\u00e7\\u00f5es, contratos, guidelines, features, padr\\u00f5es), 3) Retorne sum\\u00e1rio estruturado. get_project_info existente s\\u00f3 retornava configura\\u00e7\\u00e3o b\\u00e1sica.",
+      "decision": "Criar nova tool get_complete_project_context que retorna contexto COMPLETO do projeto em um \\u00fanico JSON estruturado com: summary executivo, formatted_context (texto para AI), full_data (objetos completos), e next_steps. Tool SEMPRE usa getProjectContext helper para garantir consulta por projeto espec\\u00edfico.",
+      "consequences": {
+        "positive": [
+          "AI tem TUDO que precisa em uma só chamada",
+          "Garante contexto nunca é global/aleatório",
+          "Sumário executivo facilita digestão",
+          "Texto formatado pronto para usar",
+          "Dados estruturados para parse programático",
+          "Flexível: pode excluir features/patterns com flags"
+        ],
+        "negative": [
+          "Response pode ser grande (muitos dados)",
+          "Pode ser overkill para consultas simples",
+          "Precisa manter sincronizado com outras tools"
+        ]
+      },
+      "alternatives": [
+        "Manter get_project_info simples (só config)",
+        "Criar múltiplas tools especializadas (get_decisions, get_contracts, etc)",
+        "Criar get_complete_project_context (escolhido)"
+      ],
+      "status": "accepted",
+      "id": "ADR-007",
+      "createdAt": "2026-01-16T20:30:57.596Z"
     }
   ],
-  "lastUpdated": "2026-01-13T01:21:29.189Z",
+  "lastUpdated": "2026-01-16T20:30:57.596Z",
   "version": "1.0.0"
 }

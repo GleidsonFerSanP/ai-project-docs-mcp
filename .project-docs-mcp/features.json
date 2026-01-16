@@ -385,6 +385,67 @@
       ],
       "createdAt": "2026-01-13T01:19:43.127Z",
       "updatedAt": "2026-01-13T01:19:43.127Z"
+    },
+    {
+      "id": "feat-1768595457593-aizdzda2h",
+      "name": "Get Complete Project Context Tool",
+      "context": "infrastructure",
+      "description": "Tool MCP robusta que obtém contexto COMPLETO de um projeto específico: decisões arquiteturais (ADRs), contratos críticos, guidelines (global + project-specific), features registradas, e padrões aprendidos. Retorna sumário executivo estruturado + texto formatado pronto para o AI usar. NUNCA retorna contexto global/aleatório.",
+      "businessRules": [
+        "SEMPRE consultar por projeto específico, NUNCA global/aleatório",
+        "Retornar compilado de TUDO: decisões, restrições, contratos, guidelines, features, padrões",
+        "Sumario executivo deve ser estruturado e fácil de entender",
+        "Incluir tanto dados estruturados quanto texto formatado para o AI",
+        "Separar guidelines por contexto (backend/frontend/infrastructure)",
+        "Auto-documentar: usar MCP para registrar mudanças"
+      ],
+      "useCases": [
+        {
+          "description": "AI começa conversa sobre projeto",
+          "name": "Início de Conversa",
+          "steps": [
+            "AI chama get_complete_project_context",
+            "Recebe sumário completo: ADRs, contratos, guidelines, features",
+            "Usa contexto para alinhar respostas com regras do projeto"
+          ]
+        },
+        {
+          "description": "AI precisa validar se decisão respeita restrições",
+          "name": "Validação de Restrições",
+          "steps": [
+            "AI obtém contexto completo",
+            "Verifica contratos e ADRs relevantes",
+            "Valida proposta contra restrições identificadas"
+          ]
+        }
+      ],
+      "relatedContracts": [],
+      "relatedPatterns": [],
+      "dependencies": [
+        "KnowledgeBase",
+        "ProjectManager",
+        "@modelcontextprotocol/sdk"
+      ],
+      "apiEndpoints": [
+        {
+          "description": "Obtem contexto completo do projeto",
+          "method": "MCP_TOOL",
+          "path": "get_complete_project_context"
+        }
+      ],
+      "status": "completed",
+      "tags": [
+        "context-retrieval",
+        "project-summary",
+        "v1.5.0",
+        "mcp-tool"
+      ],
+      "notes": "Esta tool resolve os 3 requisitos: 1) Consulta sempre por projeto espec\\u00edfico (usa getProjectContext helper), 2) Compila TUDO que \\u00e9 relevante (decisions, contracts, guidelines, features, patterns), 3) Retorna sum\\u00e1rio executivo + dados completos estruturados",
+      "filePaths": [
+        "src/index.ts"
+      ],
+      "createdAt": "2026-01-16T20:30:57.593Z",
+      "updatedAt": "2026-01-16T20:30:57.593Z"
     }
   ]
 }
