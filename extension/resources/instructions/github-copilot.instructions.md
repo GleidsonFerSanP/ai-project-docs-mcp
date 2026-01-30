@@ -1,101 +1,61 @@
 ---
-description: **CRITICAL**: Read this file at the START of EVERY conversation with GitHub Copilot. This file provides essential instructions for maintaining project context and conversational focus using the Project Docs MCP. **MUST** be loaded FIRST before any coding work to ensure proper context awareness and focus maintenance.
+description: Core instructions for AI agents using Project Docs MCP. Load at conversation start.
 ---
 
 # GitHub Copilot - Project Docs MCP Integration
 
-## 🎯 Core Principle: Always Stay Contextualized and Focused
+## Quick Start
 
-This MCP exists to keep you (AI agent) **always aware** of:
-- Current project structure, guidelines, and patterns
-- Active contracts and architectural decisions
-- Conversational focus and objectives
-- Progress checkpoints and violations
+Every conversation starts with:
 
-## 📋 Mandatory Workflow for EVERY Conversation
-
-### 1. **FIRST ACTION: Identify Context** 🔍
-
-Before doing ANYTHING, identify where you are:
-
-```
-ALWAYS call these tools at conversation start:
-1. identify_context({ file_path: "<current_file_or_path>" })
-   → Detects: project_id, context (backend/frontend/infra)
-   
-2. get_current_focus({ project_id: "<detected_project>" })
-   → Retrieves: active session, current focus, checkpoints
+```typescript
+identify_context({ file_path: "current/path" }); // 1. Where am I?
+get_current_focus({ project_id: "detected" }); // 2. Active session?
+get_merged_guidelines({ context: "backend" }); // 3. Load rules (if coding)
+start_session({ context: "backend", current_focus: "task" }); // 4. Start work
 ```
 
-**Why?** This loads the conversational state and ensures you remember what was being done.
-
----
-
-### 2. **Load Project Guidelines** 📚
-
-After identifying context, load the rules:
+## Core Workflow
 
 ```
-3. get_merged_guidelines({ 
-     project_id: "<detected_project>",
-     context: "<detected_context>"
-   })
-   → Returns: Global + project-specific guidelines
-   
-4. get_contracts({ 
-     project_id: "<detected_project>",
-     context: "<detected_context>"
-   })
-   → Returns: Critical interfaces/contracts to respect
+Context → Focus → Guidelines → Work → Checkpoint → Repeat
 ```
 
-**Why?** You must know the coding standards and contracts before making changes.
+| Step       | Tool                                  | Frequency             |
+| ---------- | ------------------------------------- | --------------------- |
+| Identify   | `identify_context`                    | 🔴 Every conversation |
+| Focus      | `get_current_focus` / `start_session` | 🔴 After identify     |
+| Guidelines | `get_merged_guidelines`               | 🔴 Before coding      |
+| Contracts  | `get_contracts`                       | 🟡 Before interfaces  |
+| Checkpoint | `create_checkpoint`                   | 🟡 Every 5-10 msgs    |
+| Complete   | `complete_session`                    | 🟢 When done          |
 
----
+## Critical Rules
 
-### 3. **Start or Resume Session** 🚀
+1. **Context before code** - Never code without `identify_context`
+2. **Check contracts** - Always validate before implementing interfaces
+3. **Checkpoint regularly** - Prevents context loss
+4. **Refresh every 10 turns** - Combat context drift
 
-If no active session exists, create one. If exists, resume it:
+## Focus Management
 
-```
-5. start_session({
-     project_id: "<detected_project>",
-     context: "<detected_context>",
-     focus: "<user_request_summary>"
-   })
-   OR
-   resume_session({ session_id: "<existing_session_id>" })
-```
+**Good focus**: Specific, actionable
 
-**Why?** Sessions track progress, maintain focus, and prevent context loss.
+- "Implement JWT auth following IAuthService"
+- "Fix timeout in db connection pool"
 
----
+**Bad focus**: Vague, unactionable
 
-### 4. **Work with Focus Awareness** 🎯
+- "Working on stuff"
+- "Fix bugs"
 
-While working on the user's request:
+Update focus when user changes direction:
 
-```
-✅ DO:
-- Keep the session focus in mind at all times
-- Validate changes against loaded contracts and guidelines
-- Add checkpoints after completing sub-tasks
-- Update focus if user changes direction
-
-❌ DON'T:
-- Diverge from the stated focus without updating it
-- Ignore contract violations
-- Make changes without checking existing patterns
-```
-
-**Update Focus When Needed:**
-
-```
+```typescript
 update_focus({
-  session_id: "<current_session>",
-  new_focus: "<clear_description_of_new_objective>",
-  reason: "<why_focus_changed>"
-})
+  new_focus: "new specific task",
+  reason: "user changed direction",
+});
 ```
 
 ---
@@ -114,6 +74,7 @@ add_checkpoint({
 ```
 
 **When to checkpoint:**
+
 - ✅ After implementing a feature
 - ✅ After fixing a bug
 - ✅ After refactoring a module
@@ -165,6 +126,7 @@ Reload:
 ### Focus Update Triggers
 
 Update focus when:
+
 - 🔄 User explicitly changes direction
 - 🔄 Current task is completed and user asks for something new
 - 🔄 You realize the stated focus doesn't match user's intent
@@ -185,6 +147,7 @@ Before making changes, ALWAYS check if contracts are involved:
 ```
 
 **If validation fails:**
+
 - 🚨 ALERT the user immediately
 - 🚨 Explain the violation
 - 🚨 Suggest a compliant implementation
@@ -194,6 +157,7 @@ Before making changes, ALWAYS check if contracts are involved:
 ## 📊 When to Complete a Session
 
 Mark session as completed when:
+
 - ✅ User's original request is fully satisfied
 - ✅ All files are saved and working
 - ✅ Tests pass (if applicable)
@@ -212,39 +176,45 @@ complete_session({
 ## 🔥 Critical Rules - NEVER VIOLATE
 
 ### Rule 1: Context Before Code
+
 **NEVER** write code before identifying context and loading guidelines.
 
 ### Rule 2: Focus First
+
 **ALWAYS** establish or retrieve session focus before starting work.
 
 ### Rule 3: Checkpoint Progress
+
 **ALWAYS** add checkpoints after meaningful work.
 
 ### Rule 4: Validate Contracts
+
 **NEVER** implement interfaces without validating against registered contracts.
 
 ### Rule 5: Refresh Regularly
+
 **ALWAYS** respect context refresh reminders (every 10 turns).
 
 ### Rule 6: Document Decisions
+
 **ALWAYS** use `add_decision()` when making architectural choices.
 
 ---
 
 ## 🎓 Quick Reference: Essential Tools
 
-| Tool                      | When to Use                                  | Frequency    |
-| ------------------------- | -------------------------------------------- | ------------ |
-| `identify_context`        | START of every conversation                  | 🔴 ALWAYS    |
-| `get_current_focus`       | After identifying context                    | 🔴 ALWAYS    |
-| `get_merged_guidelines`   | Before making any code changes               | 🔴 ALWAYS    |
-| `get_contracts`           | Before implementing interfaces               | 🟡 OFTEN     |
-| `start_session`           | If no active session                         | 🟢 AS NEEDED |
-| `update_focus`            | When user changes direction                  | 🟢 AS NEEDED |
-| `add_checkpoint`          | After completing sub-tasks (every 5-10 msgs) | 🟡 OFTEN     |
-| `complete_session`        | When task is fully done                      | 🟢 AS NEEDED |
-| `validate_contract`       | Before implementing critical interfaces      | 🟡 OFTEN     |
-| `check_existing_documentation` | Before creating new docs                | 🟡 OFTEN     |
+| Tool                           | When to Use                                  | Frequency    |
+| ------------------------------ | -------------------------------------------- | ------------ |
+| `identify_context`             | START of every conversation                  | 🔴 ALWAYS    |
+| `get_current_focus`            | After identifying context                    | 🔴 ALWAYS    |
+| `get_merged_guidelines`        | Before making any code changes               | 🔴 ALWAYS    |
+| `get_contracts`                | Before implementing interfaces               | 🟡 OFTEN     |
+| `start_session`                | If no active session                         | 🟢 AS NEEDED |
+| `update_focus`                 | When user changes direction                  | 🟢 AS NEEDED |
+| `add_checkpoint`               | After completing sub-tasks (every 5-10 msgs) | 🟡 OFTEN     |
+| `complete_session`             | When task is fully done                      | 🟢 AS NEEDED |
+| `validate_contract`            | Before implementing critical interfaces      | 🟡 OFTEN     |
+| `check_existing_documentation` | Before creating new docs                     | 🟡 OFTEN     |
 
 ---
 
@@ -256,31 +226,31 @@ User: "I need to add a new payment gateway integration"
 AI Agent:
 1. identify_context({ file_path: "src/payments/gateway.ts" })
    → Detects: project=my-app, context=backend
-   
+
 2. get_current_focus({ project_id: "my-app" })
    → Returns: No active session
-   
+
 3. start_session({
      project_id: "my-app",
      context: "backend",
      focus: "Add new payment gateway integration following payment service contracts"
    })
-   
+
 4. get_merged_guidelines({ project_id: "my-app", context: "backend" })
    → Loads: SOLID, Repository Pattern, Dependency Injection rules
-   
+
 5. get_contracts({ context: "backend", search: "payment" })
    → Finds: IPaymentGateway, IPaymentService contracts
-   
+
 6. [Implement the integration following contracts]
-   
+
 7. add_checkpoint({
      session_id: "current-session-id",
      summary: "Implemented Stripe payment gateway with IPaymentGateway contract",
      next_focus: "Add unit tests for gateway integration",
      files_modified: ["src/payments/stripe-gateway.ts"]
    })
-   
+
 8. [Continue with tests...]
 
 9. complete_session({
@@ -295,18 +265,21 @@ AI Agent:
 ## 🚨 Common Mistakes to Avoid
 
 ### ❌ Starting Work Without Context
+
 ```
 User: "Fix this bug"
 AI: [Immediately edits code] ← WRONG!
 ```
 
 **✅ Correct:**
+
 ```
 AI: Let me first identify the project context...
     [calls identify_context + get_current_focus + get_guidelines]
 ```
 
 ### ❌ Losing Focus in Long Conversations
+
 ```
 User: "Add feature X"
 AI: [Works on X]
@@ -317,6 +290,7 @@ AI: [Works on Z, forgot X] ← WRONG!
 ```
 
 **✅ Correct:**
+
 ```
 AI: [Completes X, adds checkpoint]
     [Updates focus to Y, adds checkpoint]
@@ -324,11 +298,13 @@ AI: [Completes X, adds checkpoint]
 ```
 
 ### ❌ Ignoring Contract Violations
+
 ```
 AI: [Implements interface differently than contract specifies] ← WRONG!
 ```
 
 **✅ Correct:**
+
 ```
 AI: [Validates against contract first]
     "⚠️ This implementation violates IPaymentGateway.processPayment signature"
@@ -342,6 +318,7 @@ AI: [Validates against contract first]
 > **"Context → Focus → Guidelines → Work → Checkpoint → Validate → Repeat"**
 
 Every conversation should follow this cycle:
+
 1. 🔍 **Identify** where I am (project, context)
 2. 🎯 **Establish** what I'm doing (session focus)
 3. 📚 **Load** the rules (guidelines, contracts)
@@ -365,6 +342,7 @@ Refined Focus: "Optimize database queries in user service by adding indexes and 
 ```
 
 **Refinement happens when:**
+
 - Initial focus was too broad
 - User provides more specific details
 - Problem scope changes during investigation
@@ -374,6 +352,7 @@ Refined Focus: "Optimize database queries in user service by adding indexes and 
 ## 🏁 Final Checklist for Every Conversation
 
 Before responding to user:
+
 - [ ] ✅ Context identified?
 - [ ] ✅ Session active or started?
 - [ ] ✅ Guidelines loaded?
@@ -381,6 +360,7 @@ Before responding to user:
 - [ ] ✅ Focus clear and specific?
 
 After completing work:
+
 - [ ] ✅ Checkpoint added?
 - [ ] ✅ Files saved?
 - [ ] ✅ Contracts validated?
@@ -389,6 +369,6 @@ After completing work:
 
 ---
 
-**Remember: Your job is not just to write code, but to write *contextually aware, guideline-compliant, focus-maintained* code that fits seamlessly into the project's ecosystem.**
+**Remember: Your job is not just to write code, but to write _contextually aware, guideline-compliant, focus-maintained_ code that fits seamlessly into the project's ecosystem.**
 
 🎯 **Stay Focused. Stay Contextualized. Stay Compliant.**

@@ -43,6 +43,17 @@ This MCP server provides persistent memory for your projects, ensuring AI agents
 
 [📖 Learn more about Session Focus System](docs/_shared/SESSION-FOCUS-SYSTEM.md)
 
+### 🧠 Context Engineering (NEW!)
+
+Implements best practices from Anthropic's research on effective context engineering:
+
+* **Progressive Context Enrichment**: Load context just-in-time, not all at once
+* **AGENTS.md Support**: Standard format for AI agent instructions ([agents.md](https://agents.md))
+* **Skills Architecture**: Modular skill-based documentation with progressive disclosure
+* **Compaction Strategies**: Efficient context management for long-horizon tasks
+
+[📖 Context Engineering Guide](docs/_shared/CONTEXT-ENGINEERING.md) | [📖 Progressive Context Config](docs/_shared/PROGRESSIVE-CONTEXT-CONFIG.md)
+
 ### 📚 Multi-Project Support
 
 Manage documentation for multiple projects independently with automatic context detection.
@@ -62,13 +73,42 @@ Manage documentation for multiple projects independently with automatic context 
 
 ### 🌍 Cross-Machine Portability
 
-* Environment variable support (`${HOME}`,      `${USER}`)
+* Environment variable support (`${HOME}`,        `${USER}`)
 * Works seamlessly across macOS, Linux, and Windows
 * Clean separation between framework and user data
 
 ### 📦 VS Code Extension
 
 One-click installation with automatic MCP configuration.
+
+### 📄 AGENTS.md Support
+
+This project follows the [AGENTS.md](https://agents.md) standard - a simple, open format for guiding AI coding agents. The `AGENTS.md` file in the root contains:
+* Build and test commands
+* Code conventions
+* Project structure
+* Common tasks
+
+Compatible with: Claude Code, Cursor, Windsurf, Aider, VS Code Copilot, and more.
+
+---
+
+## 📚 Documentation Structure
+
+```
+docs/
+├── skills/                    # Skill-based progressive disclosure
+│   ├── SKILL.md              # Main skill overview
+│   ├── SESSION-WORKFLOW.md   # Session management details
+│   ├── CONTRACT-REFERENCE.md # Contract validation guide
+│   ├── DOCUMENTATION-WORKFLOW.md
+│   └── PATTERNS-REFERENCE.md
+├── _shared/                   # Cross-project documentation
+│   ├── CONTEXT-ENGINEERING.md    # Context optimization guide
+│   ├── PROGRESSIVE-CONTEXT-CONFIG.md
+│   └── SESSION-FOCUS-SYSTEM.md
+└── features/                  # Feature documentation
+```
 
 ---
 
