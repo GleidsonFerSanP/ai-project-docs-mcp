@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
+import { ContextSetupManager, registerContextSetupCommands } from './context-setup-manager';
 
 // Output channel para logs categorizados
 let outputChannel: vscode.OutputChannel;
@@ -90,6 +91,24 @@ export function activate(context: vscode.ExtensionContext) {
     });
 
     context.subscriptions.push(configureCmd, restartCmd, viewDocsCmd);
+
+    // Register Progressive Context Setup commands
+    registerContextSetupCommands(context, outputChannel);
+
+    // Check and prompt for Progressive Context Setup (if enabled)
+    const progressiveConfig = vscode.workspace.getConfiguration('aiProjectContext');
+    const enableProgressiveContextPrompt = progressiveConfig.get<boolean>('enableProgressiveContextPrompt', true);
+
+    if (enableProgressiveContextPrompt) {
+        const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+        if (workspaceRoot) {
+            // Delay the prompt to not interfere with extension activation
+            setTimeout(async () => {
+                const manager = new ContextSetupManager(context, workspaceRoot, outputChannel);
+                await manager.checkAndPrompt();
+            }, 3000); // Wait 3 seconds after activation
+        }
+    }
 
     // Mostrar mensagem de boas-vindas
     vscode.window.showInformationMessage(

@@ -2,7 +2,7 @@
     "name": "ai-project-context",
     "displayName": "AI Project Context",
     "description": "Intelligent context management for AI assistants - Session focus tracking, contracts, guidelines, and project memory",
-    "version": "1.5.3",
+    "version": "1.6.0",
     "publisher": "GleidsonFerSanP",
     "icon": "icon.png",
     "engines": {
@@ -22,7 +22,9 @@
         "copilot",
         "knowledge base",
         "architecture",
-        "contracts"
+        "contracts",
+        "progressive context",
+        "agents.md"
     ],
     "activationEvents": [
         "onStartupFinished"
@@ -49,6 +51,21 @@
             {
                 "command": "ai-project-context.viewDocs",
                 "title": "Open Documentation",
+                "category": "AI Project Context"
+            },
+            {
+                "command": "aiProjectContext.setupProgressiveContext",
+                "title": "Setup Progressive Context (AGENTS.md, Skills)",
+                "category": "AI Project Context"
+            },
+            {
+                "command": "aiProjectContext.resetProgressiveContextPrompt",
+                "title": "Reset Progressive Context Prompt",
+                "category": "AI Project Context"
+            },
+            {
+                "command": "aiProjectContext.checkProgressiveContextStatus",
+                "title": "Check Progressive Context Status",
                 "category": "AI Project Context"
             }
         ],
@@ -87,6 +104,16 @@
                     "type": "string",
                     "default": "default",
                     "description": "Default project to use when none is detected"
+                },
+                "aiProjectContext.enableProgressiveContextPrompt": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Prompt to setup progressive context (AGENTS.md, Skills) when opening a new workspace"
+                },
+                "aiProjectContext.useLLMCustomization": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Use LLM to customize generated AGENTS.md and skill files based on project analysis"
                 }
             }
         }

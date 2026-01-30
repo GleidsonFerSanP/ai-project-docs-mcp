@@ -14,5 +14,21 @@
     "status": "active",
     "createdAt": "2026-01-30T22:23:56.290Z",
     "updatedAt": "2026-01-30T22:23:56.290Z"
+  },
+  "session-1769812640391-mn3utinjw": {
+    "sessionId": "session-1769812640391-mn3utinjw",
+    "projectId": "ai-project-docs-mcp",
+    "context": "all",
+    "activeContracts": [],
+    "activeFeatures": [],
+    "currentFocus": "Implementar feature de Progressive Context Setup na extensão VS Code com geração automática de estrutura de disclosure context",
+    "turnCount": 0,
+    "lastContextRefresh": "2026-01-30T22:37:20.391Z",
+    "focusReminders": [],
+    "checkpoints": [],
+    "violations": [],
+    "status": "active",
+    "createdAt": "2026-01-30T22:37:20.391Z",
+    "updatedAt": "2026-01-30T22:37:20.391Z"
   }
 }
