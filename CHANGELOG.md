@@ -5,6 +5,74 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), 
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.3] - 2025-01-17
+
+### 🐛 Critical Bug Fix - Project Session Isolation
+
+This release fixes a **critical data integrity bug** where `get_current_focus` was returning sessions from the wrong project, violating project isolation guarantees.
+
+### Fixed
+
+* **Session cross-contamination**: Fixed `SessionManager` to use project-specific session files in global directory
+* **Root cause**: Multiple projects using global directory (`~/.project-docs-mcp/knowledge/`) were sharing the same `sessions.json` file
+* **Impact**: Sessions from different projects were being mixed, causing `get_current_focus(project_id)` to potentially return wrong project's data
+
+### Changed
+
+* **SessionManager constructor**: Now accepts `projectId?: string` parameter
+* **File naming strategy**: 
+  + Project-local: `{projectRoot}/.project-docs-mcp/sessions.json` (unchanged)
+  + Global: `~/.project-docs-mcp/knowledge/{project}/sessions-{project}.json` (new format)
+* **All tool handlers**: Updated 12 SessionManager instantiations to pass `projectId` parameter:
+  + `start_session`
+  + `get_current_focus` ← Primary fix
+  + `get_session_state`
+  + `refresh_session_context`
+  + `validate_conversation_focus`
+  + `add_checkpoint`
+  + `list_active_sessions`
+  + `update_focus`
+  + `resume_session`
+  + `complete_session`
+
+### Technical Details
+
+**Before (Bug):**
+
+```typescript
+constructor(knowledgeDir: string) {
+  this.sessionsPath = join(knowledgeDir, 'sessions.json');
+  // ❌ All projects in global dir shared same file
+}
+```
+
+**After (Fixed):**
+
+```typescript
+constructor(knowledgeDir: string, projectId?: string) {
+  if (isProjectContext) {
+    this.sessionsPath = join(knowledgeDir, 'sessions.json');
+  } else if (projectId) {
+    this.sessionsPath = join(knowledgeDir, `sessions-${projectId}.json`);
+    // ✅ Each project has isolated session file
+  }
+}
+```
+
+### Documentation
+
+* **Bug Fix Report**: Created detailed analysis in `docs/BUG-FIX-v1.5.3.md`
+* **Root Cause**: Filter logic in `getActiveSessions(projectId)` was correct, but operated on combined dataset from shared file
+* **Migration Note**: Existing sessions in `~/.project-docs-mcp/knowledge/{project}/sessions.json` will need manual rename to `sessions-{project}.json`
+
+### Testing
+
+Verified with multi-project scenario:
+* Project A and B both create sessions
+* `get_current_focus({ project_id: 'project-a' })` returns only Project A's session
+* `get_current_focus({ project_id: 'project-b' })` returns only Project B's session
+* No cross-contamination between projects
+
 ## [1.2.4] - 2025-01-05
 
 ### 🐛 Critical Bug Fix - Date Serialization

@@ -54,14 +54,22 @@ export interface SessionSummary {
 
 export class SessionManager {
   private sessionsPath: string;
+  private projectId?: string; // Para garantir isolamento por projeto
 
-  constructor(knowledgeDir: string) {
+  constructor(knowledgeDir: string, projectId?: string) {
+    this.projectId = projectId;
     const isProjectContext = knowledgeDir.endsWith('.project-docs-mcp');
     
     if (isProjectContext) {
+      // Contexto do projeto: sessions.json dentro do .project-docs-mcp/
       this.sessionsPath = join(knowledgeDir, 'sessions.json');
     } else {
-      this.sessionsPath = join(knowledgeDir, 'sessions.json');
+      // Contexto global: sessions-{projectId}.json para isolar por projeto
+      if (projectId) {
+        this.sessionsPath = join(knowledgeDir, `sessions-${projectId}.json`);
+      } else {
+        this.sessionsPath = join(knowledgeDir, 'sessions.json');
+      }
     }
     
     this.ensureSessionsFile();

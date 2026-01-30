@@ -272,7 +272,7 @@ class ProjectDocsServer {
                 }
                 const projectId = this.projectManager.getCurrentProject();
                 const knowledgePath = this.projectManager.getKnowledgePath(__dirname, projectId);
-                const sessionManager = new SessionManager(knowledgePath);
+                const sessionManager = new SessionManager(knowledgePath, projectId);
                 const session = sessionManager.getSession(sessionId);
                 if (!session) {
                     throw new Error(`Sessão ${sessionId} não encontrada`);
@@ -2962,7 +2962,7 @@ ${relatedFeatures.length > 0 ? `- Features: ${relatedFeatures.join(', ')}` : ''}
                     const knowledgePath = projectRoot
                         ? join(projectRoot, '.project-docs-mcp')
                         : join(this.projectManager.getGlobalDir(), 'knowledge', projectId);
-                    const sessionManager = new SessionManager(knowledgePath);
+                    const sessionManager = new SessionManager(knowledgePath, projectId);
                     const session = sessionManager.createSession({
                         projectId,
                         context,
@@ -2998,7 +2998,7 @@ ${relatedFeatures.length > 0 ? `- Features: ${relatedFeatures.join(', ')}` : ''}
                     const knowledgePath = projectRoot
                         ? join(projectRoot, '.project-docs-mcp')
                         : join(this.projectManager.getGlobalDir(), 'knowledge', projectId);
-                    const sessionManager = new SessionManager(knowledgePath);
+                    const sessionManager = new SessionManager(knowledgePath, projectId);
                     let session;
                     if (sessionId) {
                         session = sessionManager.getSession(sessionId);
@@ -3058,7 +3058,7 @@ ${relatedFeatures.length > 0 ? `- Features: ${relatedFeatures.join(', ')}` : ''}
                     const knowledgePath = projectRoot
                         ? join(projectRoot, '.project-docs-mcp')
                         : join(this.projectManager.getGlobalDir(), 'knowledge', projectId);
-                    const sessionManager = new SessionManager(knowledgePath);
+                    const sessionManager = new SessionManager(knowledgePath, projectId);
                     let session;
                     if (sessionId) {
                         session = sessionManager.getSession(sessionId);
@@ -3119,7 +3119,7 @@ ${relatedFeatures.length > 0 ? `- Features: ${relatedFeatures.join(', ')}` : ''}
                     const knowledgePath = projectRoot
                         ? join(projectRoot, '.project-docs-mcp')
                         : join(this.projectManager.getGlobalDir(), 'knowledge', projectId);
-                    const sessionManager = new SessionManager(knowledgePath);
+                    const sessionManager = new SessionManager(knowledgePath, projectId);
                     let session;
                     if (sessionId) {
                         session = sessionManager.getSession(sessionId);
@@ -3210,7 +3210,7 @@ ${relatedFeatures.length > 0 ? `- Features: ${relatedFeatures.join(', ')}` : ''}
                     const knowledgePath = projectRoot
                         ? join(projectRoot, '.project-docs-mcp')
                         : join(this.projectManager.getGlobalDir(), 'knowledge', projectId);
-                    const sessionManager = new SessionManager(knowledgePath);
+                    const sessionManager = new SessionManager(knowledgePath, projectId);
                     let session;
                     if (sessionId) {
                         session = sessionManager.getSession(sessionId);
@@ -3273,7 +3273,7 @@ ${relatedFeatures.length > 0 ? `- Features: ${relatedFeatures.join(', ')}` : ''}
                     const knowledgePath = projectRoot
                         ? join(projectRoot, '.project-docs-mcp')
                         : join(this.projectManager.getGlobalDir(), 'knowledge', projectId);
-                    const sessionManager = new SessionManager(knowledgePath);
+                    const sessionManager = new SessionManager(knowledgePath, projectId);
                     const activeSessions = sessionManager.getActiveSessions(projectId);
                     const summaries = activeSessions.map(s => sessionManager.getSessionSummary(s.sessionId));
                     return {
@@ -3311,7 +3311,7 @@ ${relatedFeatures.length > 0 ? `- Features: ${relatedFeatures.join(', ')}` : ''}
                     const knowledgePath = projectRoot
                         ? join(projectRoot, '.project-docs-mcp')
                         : join(this.projectManager.getGlobalDir(), 'knowledge', projectId);
-                    const sessionManager = new SessionManager(knowledgePath);
+                    const sessionManager = new SessionManager(knowledgePath, projectId);
                     let session;
                     if (sessionId) {
                         session = sessionManager.getSession(sessionId);
@@ -3363,7 +3363,7 @@ ${relatedFeatures.length > 0 ? `- Features: ${relatedFeatures.join(', ')}` : ''}
                     const knowledgePath = projectRoot
                         ? join(projectRoot, '.project-docs-mcp')
                         : join(this.projectManager.getGlobalDir(), 'knowledge', projectId);
-                    const sessionManager = new SessionManager(knowledgePath);
+                    const sessionManager = new SessionManager(knowledgePath, projectId);
                     const session = sessionManager.getCurrentFocus(projectId, sessionId);
                     if (!session) {
                         return {
@@ -3441,7 +3441,7 @@ ${relatedFeatures.length > 0 ? `- Features: ${relatedFeatures.join(', ')}` : ''}
                     // Primeiro, carregar a sessão para obter o projectId
                     const currentProject = this.projectManager.getCurrentProject();
                     const tempKnowledgePath = join(this.projectManager.getGlobalDir(), 'knowledge', currentProject);
-                    const tempSessionManager = new SessionManager(tempKnowledgePath);
+                    const tempSessionManager = new SessionManager(tempKnowledgePath, currentProject);
                     const tempSession = tempSessionManager.getSession(sessionId);
                     if (!tempSession) {
                         return {
@@ -3459,7 +3459,7 @@ ${relatedFeatures.length > 0 ? `- Features: ${relatedFeatures.join(', ')}` : ''}
                     const knowledgePath = projectRoot
                         ? join(projectRoot, '.project-docs-mcp')
                         : join(this.projectManager.getGlobalDir(), 'knowledge', tempSession.projectId);
-                    const sessionManager = new SessionManager(knowledgePath);
+                    const sessionManager = new SessionManager(knowledgePath, tempSession.projectId);
                     const session = sessionManager.resumeSession(sessionId);
                     if (!session) {
                         return {
@@ -3511,7 +3511,7 @@ ${relatedFeatures.length > 0 ? `- Features: ${relatedFeatures.join(', ')}` : ''}
                     const knowledgePath = projectRoot
                         ? join(projectRoot, '.project-docs-mcp')
                         : join(this.projectManager.getGlobalDir(), 'knowledge', projectId);
-                    const sessionManager = new SessionManager(knowledgePath);
+                    const sessionManager = new SessionManager(knowledgePath, projectId);
                     const session = sessionManager.completeSession(sessionId);
                     if (!session) {
                         return {

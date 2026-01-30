@@ -2,13 +2,22 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
 export class SessionManager {
     sessionsPath;
-    constructor(knowledgeDir) {
+    projectId; // Para garantir isolamento por projeto
+    constructor(knowledgeDir, projectId) {
+        this.projectId = projectId;
         const isProjectContext = knowledgeDir.endsWith('.project-docs-mcp');
         if (isProjectContext) {
+            // Contexto do projeto: sessions.json dentro do .project-docs-mcp/
             this.sessionsPath = join(knowledgeDir, 'sessions.json');
         }
         else {
-            this.sessionsPath = join(knowledgeDir, 'sessions.json');
+            // Contexto global: sessions-{projectId}.json para isolar por projeto
+            if (projectId) {
+                this.sessionsPath = join(knowledgeDir, `sessions-${projectId}.json`);
+            }
+            else {
+                this.sessionsPath = join(knowledgeDir, 'sessions.json');
+            }
         }
         this.ensureSessionsFile();
     }
