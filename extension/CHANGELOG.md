@@ -2,6 +2,99 @@
 
 All notable changes to this extension will be documented in this file.
 
+## [1.6.5] - 2025-01-30
+
+### Bug Fixes & Improvements
+
+* **AGENTS.md at project root**: Fixed structure - AGENTS.md must be at project root (not inside .ai-agents/) for the extension detection to work properly
+* **Relative paths enforcement**: All MCP tool examples now use relative paths (`./src/...`) instead of absolute paths (`/Users/...`)
+* **Multi-developer support**: Documentation explicitly warns against absolute paths which break when multiple developers work on the project
+
+### Updated Structure
+
+```
+[project-root]/
+├── AGENTS.md                    # MUST be at root (required for detection)
+└── .ai-agents/
+    ├── QUICK-REFERENCE.md       # Condensed checklist
+    ├── skills/                  # Detailed workflows
+    └── copilot-instructions.md  # GitHub Copilot config
+```
+
+### Path Convention Examples
+
+```typescript
+// ✅ CORRECT - Relative paths
+identify_context({ file_path: "./src/index.ts" })
+
+// ❌ WRONG - Absolute paths (breaks for other developers)
+identify_context({ file_path: "/Users/username/project/src/index.ts" })
+```
+
+---
+
+## [1.6.4] - 2025-01-30
+
+### Major Enhancement: `.ai-agents/` Directory Structure & Article Research
+
+* **Dedicated `.ai-agents/` directory**: All context files are now organized in a dedicated hidden directory instead of scattered in project root
+* **LLM Article Research**: The prompt now instructs the LLM to fetch and read 5 context engineering articles before generating files:
+  + Anthropic's Effective Context Engineering
+  + Inferable's Context Engineering for AI Agents
+  + AGENTS.md Standard from AgentConfig
+  + Claude Platform's Build Effective Agents
+  + HackerNoon's What is AGENTS.md
+* **Complete MCP Tool Documentation**: The prompt includes ALL MCP tools organized by category (Session, Guidelines, Contracts, Patterns, Features, Documentation)
+* **Template Reference**: Uses this project's own structure as the template model
+* **Quality Criteria**: Explicit requirements for generated files (specificity, actionability, tool integration)
+* **Backward Compatibility**: Still detects legacy `AGENTS.md` at root for existing setups
+
+### New Directory Structure
+
+```
+.ai-agents/
+├── AGENTS.md              # Main entry point for AI agents
+├── QUICK-REFERENCE.md     # Concise summary (under 200 lines)
+└── skills/                # Detailed domain knowledge
+    ├── README.md          # Skills index
+    └── [skill-name].md    # Individual skills
+```
+
+---
+
+## [1.6.3] - 2025-01-30
+
+### Major Improvement: Copilot Chat Integration
+
+* **LLM-Powered Setup**: Instead of generating generic template files, the extension now opens GitHub Copilot Chat with a rich, contextual prompt
+* **Project-Aware Generation**: The prompt includes all detected project information (languages, frameworks, structure) and instructs the LLM to create project-specific documentation
+* **Context Engineering Best Practices**: The prompt incorporates principles from:
+  + Anthropic's Effective Context Engineering
+  + Inferable's Progressive Context Enrichment
+  + AGENTS.md Standard
+  + Claude Platform Best Practices
+* **No More Placeholders**: Files are generated with complete, project-specific content instead of "[customize this]" placeholders
+
+---
+
+## [1.6.2] - 2025-01-30
+
+### Bug Fixes
+
+* **Fixed setup detection logic**: Now correctly prompts when AGENTS.md is missing, even if other files like `.github/copilot-instructions.md` exist. AGENTS.md is the primary indicator for progressive context setup.
+
+---
+
+## [1.6.1] - 2025-01-30
+
+### Bug Fixes
+
+* **Fixed duplicate alerts**: Removed duplicate welcome message, now only shows Progressive Context prompt
+* **Improved prompt logic**: Better debug logging for troubleshooting
+* **Fixed prompt timing**: Reduced delay from 3s to 2s for faster response
+
+---
+
 ## [1.6.0] - 2025-01-27
 
 ### 🚀 New Feature: Progressive Context Setup

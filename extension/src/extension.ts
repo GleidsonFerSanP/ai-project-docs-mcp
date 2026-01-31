@@ -102,23 +102,32 @@ export function activate(context: vscode.ExtensionContext) {
     if (enableProgressiveContextPrompt) {
         const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
         if (workspaceRoot) {
+            log(`Workspace root detected: ${workspaceRoot}`);
             // Delay the prompt to not interfere with extension activation
             setTimeout(async () => {
-                const manager = new ContextSetupManager(context, workspaceRoot, outputChannel);
-                await manager.checkAndPrompt();
-            }, 3000); // Wait 3 seconds after activation
+                try {
+                    log('Checking Progressive Context setup...');
+                    const manager = new ContextSetupManager(context, workspaceRoot, outputChannel);
+                    await manager.checkAndPrompt();
+                } catch (error) {
+                    log(`Error in Progressive Context check: ${error}`, 'error');
+                }
+            }, 2000); // Wait 2 seconds after activation
+        } else {
+            log('No workspace folder detected, skipping Progressive Context check');
         }
+    } else {
+        log('Progressive Context prompt is disabled in settings');
+        // Show simple ready message only if progressive context is disabled
+        vscode.window.showInformationMessage(
+            'AI Project Context is ready! Use @ai-project-context in Copilot Chat.',
+            'Open Docs'
+        ).then(selection => {
+            if (selection === 'Open Docs') {
+                vscode.commands.executeCommand('ai-project-context.viewDocs');
+            }
+        });
     }
-
-    // Mostrar mensagem de boas-vindas
-    vscode.window.showInformationMessage(
-        'AI Project Context is ready! Use @ai-project-context in Copilot Chat.',
-        'Open Docs'
-    ).then(selection => {
-        if (selection === 'Open Docs') {
-            vscode.commands.executeCommand('ai-project-context.viewDocs');
-        }
-    });
 }
 
 function ensureGlobalStructure() {

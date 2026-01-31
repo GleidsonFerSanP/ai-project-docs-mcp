@@ -2,7 +2,7 @@
     "name": "ai-project-context",
     "displayName": "AI Project Context",
     "description": "Intelligent context management for AI assistants - Session focus tracking, contracts, guidelines, and project memory",
-    "version": "1.6.0",
+    "version": "1.6.5",
     "publisher": "GleidsonFerSanP",
     "icon": "icon.png",
     "engines": {

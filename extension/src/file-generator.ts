@@ -82,18 +82,14 @@ export class FileGenerator {
     }
 
     /**
-     * Check if any progressive context structure exists
+     * Check if the core progressive context structure exists
+     * AGENTS.md MUST be at project root for detection to work
      */
     hasProgressiveContextStructure(): boolean {
-        const indicators = [
-            'AGENTS.md',
-            'docs/skills/SKILL.md',
-            '.github/copilot-instructions.md'
-        ];
-
-        return indicators.some(file => 
-            fs.existsSync(path.join(this.workspaceRoot, file))
-        );
+        // AGENTS.md must be at project root (not inside .ai-agents/)
+        const hasAgentsMd = fs.existsSync(path.join(this.workspaceRoot, 'AGENTS.md'));
+        
+        return hasAgentsMd;
     }
 }
 
