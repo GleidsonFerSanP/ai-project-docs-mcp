@@ -2,6 +2,28 @@
 
 All notable changes to this extension will be documented in this file.
 
+## [1.6.6] - 2026-02-16
+
+### New Features
+
+* **MCP Optional Mode**: Extension now works in environments where MCP is blocked by company policies
+  + MCP registration wrapped in try-catch - extension continues if MCP fails
+  + New setting `aiProjectContext.disableMCP` to explicitly disable MCP
+  + Progressive Context Setup works independently via Copilot Chat
+  + Commands gracefully handle MCP unavailability
+
+### Settings
+
+* Added `aiProjectContext.disableMCP` (default: false) - Disable MCP server registration for restricted environments
+
+### Technical Changes
+
+* MCP API availability check before registration
+* Graceful fallback for `configure` and `restart` commands
+* Better logging for MCP-related issues
+
+---
+
 ## [1.6.5] - 2025-01-30
 
 ### Bug Fixes & Improvements

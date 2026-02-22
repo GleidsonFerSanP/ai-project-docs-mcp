@@ -34,52 +34,111 @@ export function activate(context: vscode.ExtensionContext) {
     // Garantir que estrutura global existe
     ensureGlobalStructure();
 
+    // Track MCP availability for other features
+    let mcpAvailable = false;
+
+    // Check if MCP is explicitly disabled by user/company
+    const extensionConfig = vscode.workspace.getConfiguration('aiProjectContext');
+    const mcpDisabled = extensionConfig.get<boolean>('disableMCP', false);
+
     // Registrar MCP Server Definition Provider (API moderna do VS Code)
-    log('Registering MCP Server Definition Provider...');
+    // WRAPPED IN TRY-CATCH: MCP may be blocked by company policies
     const mcpServerPath = path.join(context.extensionPath, 'mcp-server', 'index.js');
-    log(`MCP Server path: ${mcpServerPath}`);
     
-    // Verificar se arquivo existe
-    if (!fs.existsSync(mcpServerPath)) {
-        log(`MCP Server file not found at: ${mcpServerPath}`, 'error');
+    if (mcpDisabled) {
+        log('MCP is disabled via settings (aiProjectContext.disableMCP). Running in standalone mode.');
+        log('Progressive Context Setup is still available via Copilot Chat.');
     } else {
-        log('MCP Server file found successfully');
-    }
-    
-    context.subscriptions.push(
-        vscode.lm.registerMcpServerDefinitionProvider('ai-project-context', {
-            provideMcpServerDefinitions() {
-                log('Providing MCP Server definitions...');
-                return [
-                    new vscode.McpStdioServerDefinition(
-                        'ai-project-context',
-                        'node',
-                        [mcpServerPath]
-                    )
-                ];
+        try {
+            log('Attempting to register MCP Server Definition Provider...');
+            log(`MCP Server path: ${mcpServerPath}`);
+            
+            // Verificar se arquivo existe
+            if (!fs.existsSync(mcpServerPath)) {
+                log(`MCP Server file not found at: ${mcpServerPath}`, 'warn');
+            } else {
+                log('MCP Server file found successfully');
             }
-        })
-    );
-    log('MCP Server Definition Provider registered successfully');
+            
+            // Check if MCP API is available
+            if (typeof vscode.lm?.registerMcpServerDefinitionProvider === 'function') {
+                context.subscriptions.push(
+                    vscode.lm.registerMcpServerDefinitionProvider('ai-project-context', {
+                        provideMcpServerDefinitions() {
+                            log('Providing MCP Server definitions...');
+                            return [
+                                new vscode.McpStdioServerDefinition(
+                                    'ai-project-context',
+                                    'node',
+                                    [mcpServerPath]
+                                )
+                            ];
+                        }
+                    })
+                );
+                log('MCP Server Definition Provider registered successfully');
+                mcpAvailable = true;
+            } else {
+                log('MCP API not available in this VS Code version', 'warn');
+            }
+        } catch (error) {
+            // MCP registration failed - this is OK, extension will work in standalone mode
+            log(`MCP registration failed (may be blocked by company policy): ${error}`, 'warn');
+            log('Extension will continue in standalone mode - Progressive Context Setup still available');
+        }
+    } // End of if (!mcpDisabled)
 
     // Configurar MCP automaticamente ao ativar (fallback para versões antigas)
+    // Only if MCP is available
     const config = vscode.workspace.getConfiguration('aiProjectContext');
     const autoStart = config.get<boolean>('autoStart', true);
 
-    if (autoStart) {
-        configureMCP(context);
+    if (autoStart && mcpAvailable) {
+        try {
+            configureMCP(context);
+        } catch (error) {
+            log(`MCP configuration failed: ${error}`, 'warn');
+        }
     }
 
-    // Command: Configure MCP
+    // Command: Configure MCP (graceful - handles blocked MCP)
     const configureCmd = vscode.commands.registerCommand('ai-project-context.configure', () => {
         log('Command: Configure MCP');
-        configureMCP(context);
-        vscode.window.showInformationMessage('AI Project Context configured successfully!');
+        if (!mcpAvailable) {
+            vscode.window.showWarningMessage(
+                'MCP is not available in your environment. ' +
+                'You can still use Progressive Context Setup via Copilot Chat.',
+                'Setup Progressive Context'
+            ).then(selection => {
+                if (selection === 'Setup Progressive Context') {
+                    vscode.commands.executeCommand('aiProjectContext.setupProgressiveContext');
+                }
+            });
+            return;
+        }
+        try {
+            configureMCP(context);
+            vscode.window.showInformationMessage('AI Project Context configured successfully!');
+        } catch (error) {
+            log(`Configure MCP failed: ${error}`, 'warn');
+            vscode.window.showWarningMessage(
+                'MCP configuration failed. You can still use Progressive Context Setup.',
+                'Setup Progressive Context'
+            ).then(selection => {
+                if (selection === 'Setup Progressive Context') {
+                    vscode.commands.executeCommand('aiProjectContext.setupProgressiveContext');
+                }
+            });
+        }
     });
 
-    // Command: Restart MCP Server
+    // Command: Restart MCP Server (graceful)
     const restartCmd = vscode.commands.registerCommand('ai-project-context.restart', () => {
         log('Command: Restart MCP Server');
+        if (!mcpAvailable) {
+            vscode.window.showWarningMessage('MCP is not available in your environment.');
+            return;
+        }
         vscode.window.showInformationMessage('Restarting MCP server... Please reload VS Code.');
         vscode.commands.executeCommand('workbench.action.reloadWindow');
     });
