@@ -88,14 +88,15 @@ export function activate(context: vscode.ExtensionContext) {
         }
     } // End of if (!mcpDisabled)
 
-    // Configurar MCP automaticamente ao ativar (fallback para versões antigas)
-    // Only if MCP is available
+    // Configurar MCP automaticamente ao ativar (fallback para versões antigas do VS Code)
+    // Only run when MCP API is NOT available (legacy fallback)
     const config = vscode.workspace.getConfiguration('aiProjectContext');
     const autoStart = config.get<boolean>('autoStart', true);
 
-    if (autoStart && mcpAvailable) {
+    if (autoStart && !mcpAvailable) {
+        // MCP API not available — try legacy mcpServers.json approach
         try {
-            configureMCP(context);
+            configureMCP(context, true);
         } catch (error) {
             log(`MCP configuration failed: ${error}`, 'warn');
         }
@@ -253,7 +254,7 @@ function ensureGlobalStructure() {
     }
 }
 
-function configureMCP(context: vscode.ExtensionContext) {
+function configureMCP(context: vscode.ExtensionContext, silent: boolean = false) {
     // Caminho do MCP server (bundled na extensão)
     const mcpServerPath = path.join(context.extensionPath, 'mcp-server', 'index.js');
 
@@ -298,7 +299,7 @@ function configureMCP(context: vscode.ExtensionContext) {
     }
 
     // Adicionar/atualizar configuração do Project Docs MCP
-    config.mcpServers['project-docs'] = {
+    const newServerConfig = {
         command: 'node',
         args: [mcpServerPath],
         disabled: false,
@@ -323,22 +324,44 @@ function configureMCP(context: vscode.ExtensionContext) {
         ]
     };
 
+    // Only write config if entry doesn't exist yet (first install).
+    // This prevents triggering VS Code's native reload prompt on every extension update,
+    // since MCP registration is already handled by registerMcpServerDefinitionProvider.
+    if (config.mcpServers['project-docs'] && !silent) {
+        // Entry exists and user triggered manually — update path silently
+        config.mcpServers['project-docs'] = newServerConfig;
+    } else if (!config.mcpServers['project-docs']) {
+        // First install — write entry and notify user
+        config.mcpServers['project-docs'] = newServerConfig;
+    } else {
+        // Entry exists and silent mode — nothing to do
+        log('MCP config entry already exists, skipping write to avoid reload prompt.');
+        return;
+    }
+
     // Salvar configuração
     try {
         fs.writeFileSync(mcpServersPath, JSON.stringify(config, null, 4), 'utf-8');
-        console.log('MCP config updated successfully at:', mcpServersPath);
-        vscode.window.showInformationMessage(
-            'Project Docs MCP configured! Please reload VS Code to activate.',
-            'Reload Now'
-        ).then(selection => {
-            if (selection === 'Reload Now') {
-                vscode.commands.executeCommand('workbench.action.reloadWindow');
-            }
-        });
+        log('MCP config updated successfully at: ' + mcpServersPath);
+
+        if (!silent) {
+            vscode.window.showInformationMessage(
+                'Project Docs MCP configured! Please reload VS Code to activate.',
+                'Reload Now'
+            ).then(selection => {
+                if (selection === 'Reload Now') {
+                    vscode.commands.executeCommand('workbench.action.reloadWindow');
+                }
+            });
+        }
     } catch (error) {
-        vscode.window.showErrorMessage(
-            `Failed to update MCP config: ${error}`
-        );
+        if (!silent) {
+            vscode.window.showErrorMessage(
+                `Failed to update MCP config: ${error}`
+            );
+        } else {
+            log(`Failed to update MCP config: ${error}`, 'error');
+        }
     }
 }
 
